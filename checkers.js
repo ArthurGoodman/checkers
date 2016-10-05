@@ -20,7 +20,7 @@ $(document).ready(function initWebSocket() {
 
         websocket.onerror = function(evt) {};
     } catch (exception) {
-        console.log("error: ", evt.data);
+        console.log("error: ", exception);
     }
 });
 
