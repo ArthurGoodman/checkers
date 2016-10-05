@@ -10,9 +10,12 @@ TEMPLATE = app
 INCLUDEPATH += "C:/Program Files (x86)/swipl/include"
 LIBS += -L"C:/Program Files (x86)/swipl/bin" -lswipl
 
-HEADERS +=
+HEADERS += \
+    server.h
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    server.cpp
 
 OTHER_FILES += \
-    client.html
+    checkers.html \
+    checkers.js
