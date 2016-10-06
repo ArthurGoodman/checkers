@@ -22,6 +22,8 @@ void Server::onNewConnection() {
     connect(socket, &QWebSocket::disconnected, this, &Server::socketDisconnected);
 
     clients << socket;
+
+    socket->sendTextMessage("#ff0000");
 }
 
 void Server::processMessage(const QString &message) {
