@@ -11,11 +11,16 @@ INCLUDEPATH += "C:/Program Files (x86)/swipl/include"
 LIBS += -L"C:/Program Files (x86)/swipl/bin" -lswipl
 
 HEADERS += \
-    server.h
+    server.h \
+    prologinterface.h \
+    board.h
 
 SOURCES += main.cpp \
-    server.cpp
+    server.cpp \
+    prologinterface.cpp \
+    board.cpp
 
 OTHER_FILES += \
     checkers.html \
-    checkers.js
+    checkers.js \
+    checkers.pl

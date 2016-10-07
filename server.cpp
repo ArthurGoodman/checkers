@@ -3,7 +3,10 @@
 #include <QWebSocketServer>
 #include <QWebSocket>
 
-Server::Server() {
+#include "board.h"
+
+Server::Server()
+    : client(0) {
     webSocketServer = new QWebSocketServer("Checkers Server", QWebSocketServer::NonSecureMode, this);
 
     if (webSocketServer->listen(QHostAddress::Any, port))
@@ -12,18 +15,18 @@ Server::Server() {
 
 Server::~Server() {
     webSocketServer->close();
-    qDeleteAll(clients.begin(), clients.end());
+    delete client;
 }
 
 void Server::onNewConnection() {
-    QWebSocket *socket = webSocketServer->nextPendingConnection();
+    if (client == 0) {
+        client = webSocketServer->nextPendingConnection();
 
-    connect(socket, &QWebSocket::textMessageReceived, this, &Server::processMessage);
-    connect(socket, &QWebSocket::disconnected, this, &Server::socketDisconnected);
+        connect(client, &QWebSocket::textMessageReceived, this, &Server::processMessage);
+        connect(client, &QWebSocket::disconnected, this, &Server::socketDisconnected);
 
-    clients << socket;
-
-    socket->sendTextMessage("#ff0000");
+        client->sendTextMessage("{\"command\": \"board\", \"board\": " + pl.board().toJson() + "}");
+    }
 }
 
 void Server::processMessage(const QString &message) {
@@ -31,10 +34,6 @@ void Server::processMessage(const QString &message) {
 }
 
 void Server::socketDisconnected() {
-    QWebSocket *client = qobject_cast<QWebSocket *>(sender());
-
-    if (client) {
-        clients.removeAll(client);
-        client->deleteLater();
-    }
+    delete client;
+    client = 0;
 }

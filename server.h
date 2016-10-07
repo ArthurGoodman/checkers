@@ -5,11 +5,15 @@
 class QWebSocketServer;
 class QWebSocket;
 
+#include "prologinterface.h"
+
 class Server : public QObject {
     static const ushort port = 43567;
 
     QWebSocketServer *webSocketServer;
-    QList<QWebSocket *> clients;
+    QWebSocket *client;
+
+    PrologInterface pl;
 
 public:
     explicit Server();
