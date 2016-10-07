@@ -25,12 +25,12 @@ void Server::onNewConnection() {
         connect(client, &QWebSocket::textMessageReceived, this, &Server::processMessage);
         connect(client, &QWebSocket::disconnected, this, &Server::socketDisconnected);
 
-        client->sendTextMessage("{\"command\": \"board\", \"board\": " + pl.board().toJson() + "}");
+        client->sendTextMessage("{\"command\":\"board\",\"board\":" + pl.board().toJson() + "}");
     }
 }
 
 void Server::processMessage(const QString &message) {
-    qDebug() << message;
+    qDebug().noquote() << message;
 }
 
 void Server::socketDisconnected() {

@@ -6,3 +6,4 @@ board(Board) :- Board = b(n,x,n,x,n,x,n,x,
                           o,n,o,n,o,n,o,n,
                           n,o,n,o,n,o,n,o,
                           o,n,o,n,o,n,o,n).
+ 
