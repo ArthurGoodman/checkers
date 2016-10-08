@@ -87,7 +87,7 @@ $(document).ready(function() {
 })
 
 function processMessage(message) {
-    switch (message.command) {
+    switch (message.cmd) {
         case "board":
             board = message.board;
             break;
@@ -128,7 +128,7 @@ function click(x, y) {
 
 function makeMove(from, to) {
     sendMessage({
-        command: "move",
+        cmd: "move",
         from: from,
         to: to
     });

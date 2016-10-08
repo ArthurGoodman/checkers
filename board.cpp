@@ -5,7 +5,7 @@ Board::Board() {
 
 Board::Board(const QVector<char> &data)
     : data(data) {
-    if (this->data.size() != BoardWidth * BoardHeight)
+    if (this->data.size() != BoardDim * BoardDim)
         this->data.clear();
 }
 

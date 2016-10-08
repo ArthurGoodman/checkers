@@ -23,7 +23,7 @@ Board PrologInterface::board() {
         PlTerm term;
         PlCall("board", PlTermv(term));
 
-        if (term.arity() != Board::BoardWidth * Board::BoardHeight)
+        if (term.arity() != Board::BoardDim * Board::BoardDim)
             throw std::runtime_error("invalid board");
 
         for (int i = 1; i <= term.arity(); i++)

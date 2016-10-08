@@ -27,7 +27,7 @@ void Server::onNewConnection() {
         connect(client, &QWebSocket::textMessageReceived, this, &Server::processMessage);
         connect(client, &QWebSocket::disconnected, this, &Server::socketDisconnected);
 
-        client->sendTextMessage("{\"command\":\"board\",\"board\":" + pl.board().toJson() + "}");
+        client->sendTextMessage("{\"cmd\":\"board\",\"board\":" + pl.board().toJson() + "}");
     }
 }
 
@@ -37,9 +37,9 @@ void Server::processMessage(const QString &message) {
     QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
     QJsonObject obj = doc.object();
 
-    if (obj["command"] == "move") {
+    if (obj["cmd"] == "move") {
         client->sendTextMessage(message);
-        client->sendTextMessage("{\"command\":\"unlock\"}");
+        client->sendTextMessage("{\"cmd\":\"unlock\"}");
     }
 }
 
