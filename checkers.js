@@ -1,22 +1,24 @@
-var BoardWidth = 8;
-var BoardHeight = 8;
+var BoardDim = 8;
+var BoardSize = null;
+var CellSize = null;
 
 var websocket = null;
+
 var canvas = $("#checkers")[0];
-var context = canvas.getContext("2d");
+var ctx = canvas.getContext("2d");
 
 var board = null;
 var selection = null;
 
+onResize();
+
 function indexAt(x, y) {
-    return y * BoardWidth + x;
+    return y * BoardDim + x;
 }
 
 function at(x, y) {
     return board[indexAt(x, y)];
 }
-
-onResize();
 
 canvas.addEventListener("click", function(e) {
     var x, y;
@@ -32,16 +34,16 @@ canvas.addEventListener("click", function(e) {
     x -= canvas.offsetLeft;
     y -= canvas.offsetTop;
 
-    click(Math.floor(x / canvas.width * BoardWidth), Math.floor(y / canvas.height * BoardHeight));
+    click(Math.floor(x / BoardSize * BoardDim), Math.floor(y / BoardSize * BoardDim));
 });
 
 function onResize() {
-    var size = Math.min(window.innerWidth, window.innerHeight) - 50;
+    BoardSize = Math.min(window.innerWidth, window.innerHeight) - 50;
 
-    canvas.width = size;
-    canvas.height = size;
+    canvas.width = BoardSize;
+    canvas.height = BoardSize;
 
-    draw();
+    CellSize = BoardSize / BoardDim;
 }
 
 $(document).ready(function() {
@@ -54,28 +56,27 @@ $(document).ready(function() {
 
         websocket = new WebSocket("ws://localhost:43567");
 
-        websocket.onopen = function(evt) {};
+        websocket.onopen = function(e) {};
 
-        websocket.onclose = function(evt) {};
+        websocket.onclose = function(e) {};
 
-        websocket.onmessage = function(evt) {
-            console.log(evt.data);
-            processMessage(JSON.parse(evt.data));
+        websocket.onmessage = function(e) {
+            console.log(e.data);
+            processMessage(JSON.parse(e.data));
         };
 
-        websocket.onerror = function(evt) {};
+        websocket.onerror = function(e) {};
     } catch (exception) {
         console.log("error: ", exception);
     }
 
-    draw();
+    window.requestAnimationFrame(draw);
 })
 
 function processMessage(message) {
     switch (message.command) {
         case "board":
             board = message.board;
-            draw();
             break;
     }
 }
@@ -89,19 +90,20 @@ function click(x, y) {
     if (board == null)
         return;
 
-    if (at(x, y)[0] == "o") {
+    if (at(x, y) == "o" || at(x, y) == "p") {
         if (selection == indexAt(x, y))
             selection = null;
         else
             selection = indexAt(x, y);
     } else if (selection != null) {
-        if (at(x, y) == "e" && isValidMove(x, y))
-            makeMove(selection, indexAt(x, y));
-
-        selection = null;
+        if (at(x, y) == "e") {
+            if (isValidMove(x, y)) {
+                makeMove(selection, indexAt(x, y));
+                selection = null;
+            }
+        } else
+            selection = null;
     }
-
-    draw();
 }
 
 function isValidMove(from, to) {
@@ -117,18 +119,13 @@ function makeMove(from, to) {
 }
 
 function drawBackground() {
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, BoardSize, BoardSize);
 
-    for (var x = 0; x < BoardWidth; x++)
-        for (var y = 0; y < BoardHeight; y++) {
-            context.fillStyle = (x + y) % 2 == 0 ? "#eee" : "#ddd";
-            context.fillRect(x * canvas.width / BoardWidth, y * canvas.height / BoardHeight, canvas.width / BoardWidth + 1, canvas.height / BoardHeight + 1);
+    for (var x = 0; x < BoardDim; x++)
+        for (var y = 0; y < BoardDim; y++) {
+            ctx.fillStyle = (x + y) % 2 == 0 ? "#eee" : "#ddd";
+            ctx.fillRect(x * CellSize, y * CellSize, CellSize + 1, CellSize + 1);
         }
-
-    context.lineWidth = 1;
-    context.strokeStyle = "#000";
-    context.rect(0, 0, canvas.width, canvas.height);
-    context.stroke();
 }
 
 function drawBoard() {
@@ -136,27 +133,27 @@ function drawBoard() {
         return;
 
     function drawCircle(x, y, radius, lineWidth, color, fill) {
-        context.beginPath();
-        context.lineWidth = lineWidth;
-        context.arc(x, y, radius, 0, Math.PI * 2, false);
-        context.closePath();
+        ctx.beginPath();
+        ctx.lineWidth = lineWidth;
+        ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+        ctx.closePath();
 
         if (fill) {
-            context.fillStyle = color;
-            context.fill();
+            ctx.fillStyle = color;
+            ctx.fill();
         } else {
-            context.strokeStyle = color;
-            context.stroke();
+            ctx.strokeStyle = color;
+            ctx.stroke();
         }
     }
 
     function drawPiece(x, y, color, king) {
         var fill = selection == indexAt(x, y);
 
-        x = (x + 0.5) * canvas.width / BoardWidth;
-        y = (y + 0.5) * canvas.height / BoardHeight;
+        x = (x + 0.5) * CellSize;
+        y = (y + 0.5) * CellSize;
 
-        var radius = Math.min(canvas.width / BoardWidth / 2 / 1.2, canvas.height / BoardHeight / 2 / 1.2);
+        var radius = Math.min(CellSize / 2 / 1.2, BoardSize / BoardDim / 2 / 1.2);
 
         drawCircle(x, y, radius, 3, color, fill);
 
@@ -168,13 +165,25 @@ function drawBoard() {
         }
     }
 
-    for (var x = 0; x < BoardWidth; x++)
-        for (var y = 0; y < BoardHeight; y++)
+    for (var x = 0; x < BoardDim; x++)
+        for (var y = 0; y < BoardDim; y++)
             if (at(x, y) != "n" && at(x, y) != "e")
-                drawPiece(x, y, at(x, y)[0] == "x" ? "#e33" : "#33e", at(x, y).length == 2);
+                drawPiece(x, y, (at(x, y) == "x" || at(x, y) == "y") ? "#e33" : "#33e", at(x, y) == "y" || at(x, y) == "p");
+}
+
+function drawFrame() {
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#000";
+    ctx.beginPath();
+    ctx.rect(0, 0, BoardSize, BoardSize);
+    ctx.closePath();
+    ctx.stroke();
 }
 
 function draw() {
     drawBackground();
     drawBoard();
+    drawFrame();
+
+    window.requestAnimationFrame(draw);
 }

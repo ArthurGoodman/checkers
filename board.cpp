@@ -10,6 +10,9 @@ Board::Board(const QVector<char> &data)
 }
 
 QString Board::toJson() const {
+    if (data.isEmpty())
+        return "null";
+
     QString json = "[";
 
     for (int i = 0; i < data.size(); i++) {

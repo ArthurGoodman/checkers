@@ -23,4 +23,5 @@ SOURCES += main.cpp \
 OTHER_FILES += \
     checkers.html \
     checkers.js \
-    checkers.pl
+    checkers.pl \
+    style.css

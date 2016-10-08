@@ -1,11 +1,9 @@
-body { 
-    font-family: Helvetica;
-    font-size: 16px;
-    padding-top: 20px;
-    background-image: url("http://api.thumbr.it/whitenoise-361x370.png?background=424242ff&noise=525152&density=70&opacity=69");
+body {
+    padding-top: 15px;
+    background-image: url("http://api.thumbr.it/whitenoise-361x370.png?background=424242ff&noise=525252&density=70&opacity=69");
     background-color: #424242;
 }
 
 canvas {
-    box-shadow: 0px -0px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0px -0px 20px rgba(0, 0, 0, 0.75);
 }

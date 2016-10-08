@@ -5,13 +5,13 @@
 
 #include "board.h"
 
-static char *args[2] = {const_cast<char *>("-t"), const_cast<char *>("-q")};
+static char *args[] = {const_cast<char *>("-t"), const_cast<char *>("--quiet"), const_cast<char *>("--nosignals")};
 
 PrologInterface::PrologInterface()
-    : engine(2, args) {
+    : engine(sizeof(args) / sizeof(char *), args) {
     try {
         PlCall("consult('checkers.pl').");
-    } catch (PlException &e) {
+    } catch (const PlException &e) {
         std::cout << (char *)e;
     }
 }
@@ -30,7 +30,7 @@ Board PrologInterface::board() {
             board << ((char *)term[i])[0];
 
         return Board(board);
-    } catch (PlException &e) {
+    } catch (const PlException &e) {
         std::cout << (char *)e;
     } catch (const std::exception &e) {
         std::cout << "error: " << e.what() << "\n";
