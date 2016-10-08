@@ -8,12 +8,12 @@ var canvas = $("#checkers")[0];
 var ctx = canvas.getContext("2d");
 
 var board = null;
+
 var selection = null;
+var target = null;
+var animation = null;
 
 var lock = false;
-
-var animationProgress = null;
-var animationTarget = null;
 
 onResize();
 
@@ -92,18 +92,14 @@ function processMessage(message) {
             board = message.board;
             break;
 
-        case "lock":
-            lock = true;
-            break;
-
         case "unlock":
             lock = false;
             break;
 
         case "move":
             selection = message.from;
-            animationTarget = message.to;
-            animationProgress = 0;
+            target = message.to;
+            animation = 0;
             break;
     }
 }
@@ -114,7 +110,7 @@ function sendMessage(message) {
 }
 
 function click(x, y) {
-    if (lock || board == null)
+    if (lock || animation != null || board == null)
         return;
 
     if (at(x, y) == "o" || at(x, y) == "p") {
@@ -136,6 +132,8 @@ function makeMove(from, to) {
         from: from,
         to: to
     });
+
+    lock = true;
 }
 
 function drawBackground() {
@@ -173,9 +171,9 @@ function drawBoard() {
         x = (x + 0.5) * CellSize;
         y = (y + 0.5) * CellSize;
 
-        if (animationProgress != null && fill) {
-            x = x * (1 - animationProgress) + (getX(animationTarget) + 0.5) * CellSize * animationProgress;
-            y = y * (1 - animationProgress) + (getY(animationTarget) + 0.5) * CellSize * animationProgress;
+        if (animation != null && fill) {
+            x = x * (1 - animation) + (getX(target) + 0.5) * CellSize * animation;
+            y = y * (1 - animation) + (getY(target) + 0.5) * CellSize * animation;
         }
 
         var radius = CellSize / 2 / 1.2;
@@ -195,14 +193,16 @@ function drawBoard() {
             if (at(x, y) != "n" && at(x, y) != "e")
                 drawPiece(x, y, (at(x, y) == "x" || at(x, y) == "y") ? "#e33" : "#33e", at(x, y) == "y" || at(x, y) == "p");
 
-    if (animationProgress != null) {
-        animationProgress += 0.1;
+    if (animation != null) {
+        animation += 0.1;
 
-        if (animationProgress >= 1) {
-            board[animationTarget] = board[selection];
+        if (animation >= 1) {
+            board[target] = board[selection];
             board[selection] = "e";
-            animationProgress = null;
-            animationTarget = null;
+
+            selection = null;
+            target = null;
+            animation = null;
         }
     }
 }

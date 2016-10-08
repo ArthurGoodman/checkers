@@ -38,7 +38,6 @@ void Server::processMessage(const QString &message) {
     QJsonObject obj = doc.object();
 
     if (obj["command"] == "move") {
-        client->sendTextMessage("{\"command\":\"lock\"}");
         client->sendTextMessage(message);
         client->sendTextMessage("{\"command\":\"unlock\"}");
     }
