@@ -10,10 +10,23 @@ var ctx = canvas.getContext("2d");
 var board = null;
 var selection = null;
 
+var lock = false;
+
+var animationProgress = null;
+var animationTarget = null;
+
 onResize();
 
 function indexAt(x, y) {
     return y * BoardDim + x;
+}
+
+function getX(index) {
+    return index % BoardDim;
+}
+
+function getY(index) {
+    return Math.floor(index / BoardDim);
 }
 
 function at(x, y) {
@@ -78,6 +91,20 @@ function processMessage(message) {
         case "board":
             board = message.board;
             break;
+
+        case "lock":
+            lock = true;
+            break;
+
+        case "unlock":
+            lock = false;
+            break;
+
+        case "move":
+            selection = message.from;
+            animationTarget = message.to;
+            animationProgress = 0;
+            break;
     }
 }
 
@@ -87,7 +114,7 @@ function sendMessage(message) {
 }
 
 function click(x, y) {
-    if (board == null)
+    if (lock || board == null)
         return;
 
     if (at(x, y) == "o" || at(x, y) == "p") {
@@ -96,18 +123,11 @@ function click(x, y) {
         else
             selection = indexAt(x, y);
     } else if (selection != null) {
-        if (at(x, y) == "e") {
-            if (isValidMove(x, y)) {
-                makeMove(selection, indexAt(x, y));
-                selection = null;
-            }
-        } else
-            selection = null;
-    }
-}
+        if (at(x, y) == "e")
+            makeMove(selection, indexAt(x, y));
 
-function isValidMove(from, to) {
-    return true;
+        selection = null;
+    }
 }
 
 function makeMove(from, to) {
@@ -153,7 +173,12 @@ function drawBoard() {
         x = (x + 0.5) * CellSize;
         y = (y + 0.5) * CellSize;
 
-        var radius = Math.min(CellSize / 2 / 1.2, BoardSize / BoardDim / 2 / 1.2);
+        if (animationProgress != null && fill) {
+            x = x * (1 - animationProgress) + (getX(animationTarget) + 0.5) * CellSize * animationProgress;
+            y = y * (1 - animationProgress) + (getY(animationTarget) + 0.5) * CellSize * animationProgress;
+        }
+
+        var radius = CellSize / 2 / 1.2;
 
         drawCircle(x, y, radius, 3, color, fill);
 
@@ -169,6 +194,17 @@ function drawBoard() {
         for (var y = 0; y < BoardDim; y++)
             if (at(x, y) != "n" && at(x, y) != "e")
                 drawPiece(x, y, (at(x, y) == "x" || at(x, y) == "y") ? "#e33" : "#33e", at(x, y) == "y" || at(x, y) == "p");
+
+    if (animationProgress != null) {
+        animationProgress += 0.1;
+
+        if (animationProgress >= 1) {
+            board[animationTarget] = board[selection];
+            board[selection] = "e";
+            animationProgress = null;
+            animationTarget = null;
+        }
+    }
 }
 
 function drawFrame() {

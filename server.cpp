@@ -2,6 +2,8 @@
 
 #include <QWebSocketServer>
 #include <QWebSocket>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include "board.h"
 
@@ -31,6 +33,15 @@ void Server::onNewConnection() {
 
 void Server::processMessage(const QString &message) {
     qDebug().noquote() << message;
+
+    QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
+    QJsonObject obj = doc.object();
+
+    if (obj["command"] == "move") {
+        client->sendTextMessage("{\"command\":\"lock\"}");
+        client->sendTextMessage(message);
+        client->sendTextMessage("{\"command\":\"unlock\"}");
+    }
 }
 
 void Server::socketDisconnected() {
