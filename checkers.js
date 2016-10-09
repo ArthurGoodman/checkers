@@ -51,7 +51,7 @@ canvas.addEventListener("click", function(e) {
 });
 
 function onResize() {
-    BoardSize = Math.min(window.innerWidth, window.innerHeight) - 50;
+    BoardSize = Math.min(window.innerWidth, window.innerHeight) - 45;
 
     canvas.width = BoardSize;
     canvas.height = BoardSize;
@@ -101,6 +101,11 @@ function processMessage(message) {
             target = message.to;
             animation = 0;
             break;
+
+        case "winner":
+            alert((message.winner == "x" ? "AI" : "Player") + " won!");
+            lock = true;
+            break;
     }
 }
 
@@ -133,7 +138,7 @@ function makeMove(from, to) {
         to: to
     });
 
-    lock = true;
+    // lock = true;
 }
 
 function drawBackground() {

@@ -11,30 +11,87 @@ PrologInterface::PrologInterface()
     : engine(sizeof(args) / sizeof(char *), args) {
     try {
         PlCall("consult('checkers.pl').");
+
+        PlCall("assert(min_to_move(o/_)).");
+        PlCall("assert(max_to_move(x/_)).");
+
+        PlTermv av(1);
+        PlCall("init", av);
+
+        board = av[0];
     } catch (const PlException &e) {
         std::cout << (char *)e;
     }
 }
 
-Board PrologInterface::board() {
-    QVector<char> board;
-
+bool PrologInterface::move(int from, int to) {
     try {
-        PlTerm term;
-        PlCall("board", PlTermv(term));
+        long fromL = from / Board::BoardDim + 1;
+        long fromC = from % Board::BoardDim + 1;
+        long toL = to / Board::BoardDim + 1;
+        long toC = to % Board::BoardDim + 1;
 
-        if (term.arity() != Board::BoardDim * Board::BoardDim)
-            throw std::runtime_error("invalid board");
+        PlTermv av(6);
+        PlCall("term_to_atom", PlTermv(av[0], board.toTerm().toStdString().data()));
+        av[1] = fromL;
+        av[2] = fromC;
+        av[3] = toL;
+        av[4] = toC;
 
-        for (int i = 1; i <= term.arity(); i++)
-            board << ((char *)term[i])[0];
+        if (!PlCall("move", av))
+            return false;
 
-        return Board(board);
+        board = av[5];
     } catch (const PlException &e) {
         std::cout << (char *)e;
-    } catch (const std::exception &e) {
-        std::cout << "error: " << e.what() << "\n";
+        return false;
     }
 
-    return Board();
+    return true;
+}
+
+void PrologInterface::ai() {
+    try {
+        PlTermv av(6);
+        PlCall("term_to_atom", PlTermv(av[0], ("x/" + board.toTerm()).toStdString().data()));
+        av[1] = -100;
+        av[2] = 100;
+        av[5] = 2;
+
+        PlCall("alphabeta", av);
+
+        board = av[3][2];
+    } catch (const PlException &e) {
+        std::cout << (char *)e;
+    }
+}
+
+bool PrologInterface::checkPlayerWon() {
+    try {
+        PlTermv av(2);
+        PlCall("term_to_atom", PlTermv(av[0], board.toTerm().toStdString().data()));
+        av[1] = "o";
+
+        return PlCall("goal", av);
+    } catch (const PlException &e) {
+        std::cout << (char *)e;
+        return false;
+    }
+}
+
+bool PrologInterface::checkAiWon() {
+    try {
+        PlTermv av(2);
+        PlCall("term_to_atom", PlTermv(av[0], board.toTerm().toStdString().data()));
+        av[1] = "x";
+
+        return PlCall("goal", av);
+    } catch (const PlException &e) {
+        std::cout << (char *)e;
+        return false;
+    }
+}
+
+Board PrologInterface::getBoard() {
+    return board;
 }

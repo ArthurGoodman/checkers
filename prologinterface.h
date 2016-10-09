@@ -1,16 +1,17 @@
 #pragma once
 
-#include <QVector>
-
-#include <SWI-cpp.h>
-
-class Board;
+#include "board.h"
 
 class PrologInterface {
     PlEngine engine;
+    Board board;
 
 public:
     PrologInterface();
 
-    Board board();
+    bool move(int from, int to);
+    void ai();
+    bool checkPlayerWon();
+    bool checkAiWon();
+    Board getBoard();
 };
