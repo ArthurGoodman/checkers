@@ -69,7 +69,7 @@ $(document).ready(function() {
         if (websocket && websocket.readyState == 1)
             websocket.close();
 
-        websocket = new WebSocket("ws://localhost:43567");
+        websocket = new WebSocket("ws://" + location.hostname + ":43567");
 
         websocket.onopen = function(e) {};
 
@@ -176,11 +176,14 @@ function drawBoard() {
 
     for (var x = 0; x < BoardDim; x++)
         for (var y = 0; y < BoardDim; y++)
-            if (at(x, y) != "n" && at(x, y) != "e")
+            if (at(x, y) != "n" && at(x, y) != "e" && selection != indexAt(x, y))
                 drawPiece(x, y, (at(x, y) == "x" || at(x, y) == "y") ? "#e33" : "#33e", at(x, y) == "y" || at(x, y) == "p");
 
+    if (selection != null)
+        drawPiece(getX(selection), getY(selection), (board[selection] == "x" || board[selection] == "y") ? "#e33" : "#33e", board[selection] == "y" || board[selection] == "p");
+
     if (animation != null) {
-        animation += 0.1;
+        animation += 0.05;
 
         if (animation >= 1) {
             if (getY(target) == 7 && board[selection] == "x")
