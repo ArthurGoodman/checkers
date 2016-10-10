@@ -23,4 +23,7 @@ private slots:
     void onNewConnection();
     void processMessage(const QString &message);
     void socketDisconnected();
+
+private:
+    QVector<QPair<int, int>> parseMoves(const Board &a, const Board &b);
 };

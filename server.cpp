@@ -39,16 +39,32 @@ void Server::processMessage(const QString &message) {
 
     if (json["cmd"] == "move") {
         if (pl.move(json["from"].toInt(), json["to"].toInt())) {
+            client->sendTextMessage(message);
+
+            if (Board::getX(json["from"].toInt()) - Board::getX(json["to"].toInt()) == 2)
+                client->sendTextMessage("{\"cmd\":\"remove\",\"location\":" + QString::number(Board::indexAt((Board::getX(json["from"].toInt()) + Board::getX(json["to"].toInt())) / 2, (Board::getY(json["from"].toInt()) + Board::getY(json["to"].toInt())) / 2)) + "}");
+
             if (pl.checkPlayerWon())
                 client->sendTextMessage("{\"cmd\":\"winner\",\"winner\":\"o\"}");
             else {
+                Board board = pl.getBoard();
+
                 pl.ai();
+
+                QVector<QPair<int, int>> moves = parseMoves(board, pl.getBoard());
+
+                for (const QPair<int, int> &move : moves) {
+                    client->sendTextMessage("{\"cmd\":\"move\",\"from\":" + QString::number(move.first) + ",\"to\":" + QString::number(move.second) + "}");
+
+                    if (Board::getX(move.first) - Board::getX(move.second) == 2)
+                        client->sendTextMessage("{\"cmd\":\"remove\",\"location\":" + QString::number(Board::indexAt((Board::getX(move.first) + Board::getX(move.second)) / 2, (Board::getY(move.first) + Board::getY(move.second)) / 2)) + "}");
+                }
 
                 if (pl.checkAiWon())
                     client->sendTextMessage("{\"cmd\":\"winner\",\"winner\":\"x\"}");
             }
 
-            client->sendTextMessage("{\"cmd\":\"board\",\"board\":" + pl.getBoard().toJson() + "}");
+            // client->sendTextMessage("{\"cmd\":\"board\",\"board\":" + pl.getBoard().toJson() + "}");
         }
     }
 }
@@ -56,4 +72,61 @@ void Server::processMessage(const QString &message) {
 void Server::socketDisconnected() {
     delete client;
     client = 0;
+}
+
+QVector<QPair<int, int>> Server::parseMoves(const Board &a, const Board &b) {
+    QVector<QPair<int, int>> moves;
+
+    int location = -1, newLocation = -1;
+    int x, y;
+
+    for (int i = 0; i < Board::size(); i++)
+        if ((a.at(i) == 'x' || a.at(i) == 'y') && b.at(i) == 'e') {
+            location = i;
+            x = Board::getX(location);
+            y = Board::getY(location);
+            break;
+        }
+
+    char type = a.at(location);
+
+    while (location != -1) {
+        qDebug() << location;
+
+        if (type == 'x') {
+            if (a.at(x + 1, y + 1) == 'e' && b.at(x + 1, y + 1) == 'x')
+                moves << qMakePair(location, newLocation = Board::indexAt(x + 1, y + 1));
+            else if (a.at(x - 1, y + 1) == 'e' && b.at(x - 1, y + 1) == 'x')
+                moves << qMakePair(location, newLocation = Board::indexAt(x - 1, y + 1));
+            else if ((a.at(x + 1, y + 1) == 'o' || a.at(x + 1, y + 1) == 'p') && b.at(x + 1, y + 1) == 'e')
+                moves << qMakePair(location, newLocation = Board::indexAt(x + 2, y + 2));
+            else if ((a.at(x - 1, y + 1) == 'o' || a.at(x - 1, y + 1) == 'p') && b.at(x - 1, y + 1) == 'e')
+                moves << qMakePair(location, newLocation = Board::indexAt(x - 2, y + 2));
+        } else {
+            if (a.at(x + 1, y + 1) == 'e' && b.at(x + 1, y + 1) == 'y')
+                moves << qMakePair(location, newLocation = Board::indexAt(x + 1, y + 1));
+            else if (a.at(x - 1, y + 1) == 'e' && b.at(x - 1, y + 1) == 'y')
+                moves << qMakePair(location, newLocation = Board::indexAt(x - 1, y + 1));
+            else if (a.at(x + 1, y - 1) == 'e' && b.at(x + 1, y - 1) == 'y')
+                moves << qMakePair(location, newLocation = Board::indexAt(x + 1, y - 1));
+            else if (a.at(x - 1, y - 1) == 'e' && b.at(x - 1, y - 1) == 'y')
+                moves << qMakePair(location, newLocation = Board::indexAt(x - 1, y - 1));
+            else if ((a.at(x + 1, y + 1) == 'o' || a.at(x + 1, y + 1) == 'p') && b.at(x + 1, y + 1) == 'e')
+                moves << qMakePair(location, newLocation = Board::indexAt(x + 2, y + 2));
+            else if ((a.at(x - 1, y + 1) == 'o' || a.at(x - 1, y + 1) == 'p') && b.at(x - 1, y + 1) == 'e')
+                moves << qMakePair(location, newLocation = Board::indexAt(x - 2, y + 2));
+            else if ((a.at(x + 1, y - 1) == 'o' || a.at(x + 1, y - 1) == 'p') && b.at(x + 1, y - 1) == 'e')
+                moves << qMakePair(location, newLocation = Board::indexAt(x + 2, y - 2));
+            else if ((a.at(x - 1, y - 1) == 'o' || a.at(x - 1, y - 1) == 'p') && b.at(x - 1, y - 1) == 'e')
+                moves << qMakePair(location, newLocation = Board::indexAt(x - 2, y - 2));
+        }
+
+        location = newLocation;
+        x = Board::getX(location);
+        y = Board::getY(location);
+
+        newLocation = -1;
+    }
+
+    return moves;
 }

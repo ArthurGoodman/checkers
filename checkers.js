@@ -13,6 +13,8 @@ var selection = null;
 var target = null;
 var animation = null;
 
+var moves = [];
+
 var lock = false;
 
 onResize();
@@ -97,9 +99,17 @@ function processMessage(message) {
             break;
 
         case "move":
-            selection = message.from;
-            target = message.to;
-            animation = 0;
+            moves.unshift({
+                from: message.from,
+                to: message.to
+            });
+            // selection = message.from;
+            // target = message.to;
+            // animation = 0;
+            break;
+
+        case "remove":
+            board[message.location] = "e";
             break;
 
         case "winner":
@@ -209,6 +219,12 @@ function drawBoard() {
             target = null;
             animation = null;
         }
+    } else if (moves.length > 0) {
+        var move = moves.pop();
+
+        selection = move.from;
+        target = move.to;
+        animation = 0;
     }
 }
 

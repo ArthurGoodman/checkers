@@ -3,6 +3,22 @@
 #include <iostream>
 #include <exception>
 
+int Board::getX(int index) {
+    return index % BoardDim;
+}
+
+int Board::getY(int index) {
+    return index / BoardDim;
+}
+
+int Board::indexAt(int x, int y) {
+    return y * BoardDim + x;
+}
+
+int Board::size() {
+    return BoardDim * BoardDim;
+}
+
 Board::Board() {
 }
 
@@ -87,4 +103,18 @@ QString Board::toJson() const {
     }
 
     return json + "]";
+}
+
+char Board::at(int i) const {
+    if (i < 0 || i >= size())
+        return 'n';
+
+    return data.at(i);
+}
+
+char Board::at(int x, int y) const {
+    if (x < 0 || x >= BoardDim || y < 0 || y >= BoardDim)
+        return 'n';
+
+    return data.at(indexAt(x, y));
 }
