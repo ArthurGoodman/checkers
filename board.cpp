@@ -42,16 +42,8 @@ Board &Board::operator=(const PlTerm &term) {
         if (term.arity() != Board::BoardDim * Board::BoardDim)
             throw std::runtime_error("invalid board");
 
-        for (int i = 1; i <= term.arity(); i++) {
-            std::string str = (char *)term[i];
-
-            if (str == "xx")
-                str = "y";
-            else if (str == "oo")
-                str = "p";
-
-            data << str[0];
-        }
+        for (int i = 1; i <= term.arity(); i++)
+            data << ((char *)term[i])[0];
     } catch (const PlException &e) {
         std::cout << (char *)e;
     } catch (const std::exception &e) {
@@ -74,16 +66,7 @@ QString Board::toTerm() const {
         if (i > 0)
             term += ",";
 
-        QString str;
-
-        if (data[i] == 'y')
-            str = "xx";
-        else if (data[i] == 'p')
-            str = "oo";
-        else
-            str = data[i];
-
-        term += str;
+        term += data[i];
     }
 
     return term + ")";

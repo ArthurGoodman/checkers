@@ -13,7 +13,7 @@ var selection = null;
 var target = null;
 var animation = null;
 
-var moves = [];
+var messages = [];
 
 var lock = false;
 
@@ -85,38 +85,11 @@ $(document).ready(function() {
         console.log("error: ", exception);
     }
 
-    window.requestAnimationFrame(draw);
+    window.requestAnimationFrame(frame);
 })
 
 function processMessage(message) {
-    switch (message.cmd) {
-        case "board":
-            board = message.board;
-            break;
-
-        case "unlock":
-            lock = false;
-            break;
-
-        case "move":
-            moves.unshift({
-                from: message.from,
-                to: message.to
-            });
-            // selection = message.from;
-            // target = message.to;
-            // animation = 0;
-            break;
-
-        case "remove":
-            board[message.location] = "e";
-            break;
-
-        case "winner":
-            alert((message.winner == "x" ? "AI" : "Player") + " won!");
-            lock = true;
-            break;
-    }
+    messages.unshift(message);
 }
 
 function sendMessage(message) {
@@ -147,8 +120,6 @@ function makeMove(from, to) {
         from: from,
         to: to
     });
-
-    // lock = true;
 }
 
 function drawBackground() {
@@ -212,19 +183,19 @@ function drawBoard() {
         animation += 0.1;
 
         if (animation >= 1) {
-            board[target] = board[selection];
+            if (getY(target) == 7 && board[selection] == "x")
+                board[target] = "y";
+            else if (getY(target) == 0 && board[selection] == "o")
+                board[target] = "p";
+            else
+                board[target] = board[selection];
+
             board[selection] = "e";
 
             selection = null;
             target = null;
             animation = null;
         }
-    } else if (moves.length > 0) {
-        var move = moves.pop();
-
-        selection = move.from;
-        target = move.to;
-        animation = 0;
     }
 }
 
@@ -237,10 +208,35 @@ function drawFrame() {
     ctx.stroke();
 }
 
-function draw() {
+function frame() {
     drawBackground();
     drawBoard();
     drawFrame();
 
-    window.requestAnimationFrame(draw);
+    if (animation == null && messages.length > 0) {
+        var message = messages.pop();
+
+        switch (message.cmd) {
+            case "board":
+                board = message.board;
+                break;
+
+            case "move":
+                selection = message.from;
+                target = message.to;
+                animation = 0;
+                break;
+
+            case "remove":
+                board[message.location] = "e";
+                break;
+
+            case "winner":
+                alert((message.winner == "x" ? "AI" : "Player") + " won!");
+                lock = true;
+                break;
+        }
+    }
+
+    window.requestAnimationFrame(frame);
 }

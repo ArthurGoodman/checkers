@@ -15,10 +15,7 @@ PrologInterface::PrologInterface()
         PlCall("assert(min_to_move(o/_)).");
         PlCall("assert(max_to_move(x/_)).");
 
-        PlTermv av(1);
-        PlCall("init", av);
-
-        board = av[0];
+        reset();
     } catch (const PlException &e) {
         std::cout << (char *)e;
     }
@@ -94,4 +91,10 @@ bool PrologInterface::checkAiWon() {
 
 Board PrologInterface::getBoard() {
     return board;
+}
+
+void PrologInterface::reset() {
+    PlTermv av(1);
+    PlCall("init", av);
+    board = av[0];
 }

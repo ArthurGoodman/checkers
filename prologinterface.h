@@ -14,4 +14,6 @@ public:
     bool checkPlayerWon();
     bool checkAiWon();
     Board getBoard();
+
+    void reset();
 };

@@ -12,23 +12,23 @@ next_player(o, x).
 
 % convert a turn sign to it's pawns
 turn_to_sign(x, x).
-turn_to_sign(x, xx).
+turn_to_sign(x, y).
 turn_to_sign(o, o).
-turn_to_sign(o, oo).
+turn_to_sign(o, p).
 
 % convert a pawn to a king sign
-king_sign(x, xx).
-king_sign(o, oo).
+king_sign(x, y).
+king_sign(o, p).
 
 % the enemies pawns of each pawn
 enemy(o, x).
-enemy(o, xx).
+enemy(o, y).
 enemy(x, o).
-enemy(x, oo).
-enemy(oo, x).
-enemy(oo, xx).
-enemy(xx, o).
-enemy(xx, oo).
+enemy(x, p).
+enemy(p, x).
+enemy(p, y).
+enemy(y, o).
+enemy(y, p).
 
 % The initial board
 init( Board) :-
@@ -41,10 +41,10 @@ clear :-
 
 % put a sign in a specific location in the board relation
 putSign( Board, 8, Col, x, NewBoard) :-
-         putSign(Board, 8, Col, xx, NewBoard),!.
+         putSign(Board, 8, Col, y, NewBoard),!.
          
 putSign( Board, 1, Col, o, NewBoard) :-
-         putSign(Board, 1, Col, oo, NewBoard),!.
+         putSign(Board, 1, Col, p, NewBoard),!.
          
 putSign( Board, Line, Col, Sign, NewBoard) :-
          Place is ((Line - 1) * 8) + Col,
@@ -67,7 +67,7 @@ replace( [X|Xs], Place, Val, [X|Ys], Counter) :-
          
 getPawn( Board, Line, Col, P) :-
          getPos( Board, Line, Col, P),
-         (P = x ; P = xx ; P = o ; P = oo).
+         (P = x ; P = y ; P = o ; P = p).
          
 % counts how many instances of a sign are on the board
 count( Board, Sign, Res) :-
@@ -113,9 +113,9 @@ movePawnEatRec( Board, Pawn, FromL, FromC, ToL, ToC, NewBoard) :-
           movePawnEat( Board, Pawn, FromL, FromC, ToL, ToC, NewBoard).
           
 movePawnEatRec( Board, Pawn, FromL, FromC, ToL, ToC, NewBoard) :-
-          ((Pawn = x ; Pawn = xx ; Pawn = oo),
+          ((Pawn = x ; Pawn = y ; Pawn = p),
           FromL1 is FromL + 2 ;
-          (Pawn = o ; Pawn = xx ; Pawn = oo),
+          (Pawn = o ; Pawn = y ; Pawn = p),
           FromL1 is FromL - 2),
           FromC1 is FromC + 2,
           FromC2 is FromC - 2,
@@ -137,7 +137,7 @@ movePawnEat( Board, Pawn, FromL, FromC, ToL, ToC, NewBoard) :-
 
 % Check if a specific move is a valid eat
 validateEat( Board, King, FromL, FromC, ToL, ToC) :-
-             (King = xx ; King = oo),
+             (King = y ; King = p),
              ToL >= 1, ToC >= 1,
              FromL =< 8, FromL =< 8,
              (ToL is FromL - 2 ;
@@ -173,7 +173,7 @@ validateEat( Board, o, FromL, FromC, ToL, ToC) :-
 
 % Check if a specific move is valid
 validateMove( Board, King, FromL, FromC, ToL, ToC) :-
-              (King = xx ; King = oo),
+              (King = y ; King = p),
               ToL >= 1, ToC >= 1,
               FromL =< 8, FromL =< 8,
               (ToL is FromL + 1 ;
