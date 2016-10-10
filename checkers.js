@@ -69,7 +69,8 @@ $(document).ready(function() {
         if (websocket && websocket.readyState == 1)
             websocket.close();
 
-        websocket = new WebSocket("ws://" + location.hostname + ":43567");
+        console.log();
+        websocket = new WebSocket("ws://" + (location.hostname.length > 0 ? location.hostname : "localhost") + ":43567");
 
         websocket.onopen = function(e) {};
 
@@ -174,13 +175,18 @@ function drawBoard() {
         }
     }
 
+    function processCell(x, y) {
+        if (at(x, y) != "n" && at(x, y) != "e")
+            drawPiece(x, y, (at(x, y) == "x" || at(x, y) == "y") ? "#e33" : "#33e", at(x, y) == "y" || at(x, y) == "p");
+    }
+
     for (var x = 0; x < BoardDim; x++)
         for (var y = 0; y < BoardDim; y++)
-            if (at(x, y) != "n" && at(x, y) != "e" && selection != indexAt(x, y))
-                drawPiece(x, y, (at(x, y) == "x" || at(x, y) == "y") ? "#e33" : "#33e", at(x, y) == "y" || at(x, y) == "p");
+            if (selection != indexAt(x, y))
+                processCell(x, y);
 
     if (selection != null)
-        drawPiece(getX(selection), getY(selection), (board[selection] == "x" || board[selection] == "y") ? "#e33" : "#33e", board[selection] == "y" || board[selection] == "p");
+        processCell(getX(selection), getY(selection));
 
     if (animation != null) {
         animation += 0.05;
