@@ -1,6 +1,12 @@
-var spawn = require('child_process').spawn;
-spawn('release/checkers.exe').stdout.on('data', function(data) {
+var spawn = require("child_process").spawn;
+var child = spawn("release/checkers.exe");
+
+child.stdout.on("data", function(data) {
     console.log(data.toString());
+});
+
+child.on("close", function(code) {
+    console.log("checkers.exe exited with code " + code);
 });
 
 var http = require("http");

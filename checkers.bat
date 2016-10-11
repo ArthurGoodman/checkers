@@ -1,2 +1,2 @@
 @echo off
-nodemon -e js,pl checkers.js
+node checkers.js
