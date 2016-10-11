@@ -4,6 +4,7 @@
 #include <QWebSocket>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <iostream>
 
 #include "board.h"
 
@@ -32,7 +33,7 @@ void Server::onNewConnection() {
 }
 
 void Server::processMessage(const QString &message) {
-    qDebug().noquote() << message;
+    QTextStream(stdout) << message;
 
     QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
     QJsonObject json = jsonDoc.object();
