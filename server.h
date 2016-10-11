@@ -11,7 +11,7 @@ class Server : public QObject {
     static const ushort port = 43567;
 
     QWebSocketServer *webSocketServer;
-    QWebSocket *client;
+    QList<QWebSocket *> clients;
 
     PrologInterface pl;
 
@@ -25,5 +25,8 @@ private slots:
     void socketDisconnected();
 
 private:
+    void winner(const QString &winner);
+    void move(int from, int to);
+    void sendMessage(const QString &message);
     QVector<QPair<int, int>> parseMoves(const Board &a, const Board &b);
 };

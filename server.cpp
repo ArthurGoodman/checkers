@@ -8,8 +8,7 @@
 
 #include "board.h"
 
-Server::Server()
-    : client(0) {
+Server::Server() {
     webSocketServer = new QWebSocketServer("Checkers Server", QWebSocketServer::NonSecureMode, this);
 
     if (webSocketServer->listen(QHostAddress::Any, port))
@@ -18,18 +17,18 @@ Server::Server()
 
 Server::~Server() {
     webSocketServer->close();
-    delete client;
+    qDeleteAll(clients.begin(), clients.end());
 }
 
 void Server::onNewConnection() {
-    if (client == 0) {
-        client = webSocketServer->nextPendingConnection();
+    QWebSocket *client = webSocketServer->nextPendingConnection();
 
-        connect(client, &QWebSocket::textMessageReceived, this, &Server::processMessage);
-        connect(client, &QWebSocket::disconnected, this, &Server::socketDisconnected);
+    connect(client, &QWebSocket::textMessageReceived, this, &Server::processMessage);
+    connect(client, &QWebSocket::disconnected, this, &Server::socketDisconnected);
 
-        client->sendTextMessage("{\"cmd\":\"board\",\"board\":" + pl.getBoard().toJson() + "}");
-    }
+    client->sendTextMessage(QString("{\"cmd\": \"board\", \"board\": %1}").arg(pl.getBoard().toJson()));
+
+    clients << client;
 }
 
 void Server::processMessage(const QString &message) {
@@ -39,14 +38,13 @@ void Server::processMessage(const QString &message) {
     QJsonObject json = jsonDoc.object();
 
     if (json["cmd"] == "move") {
-        if (pl.move(json["from"].toInt(), json["to"].toInt())) {
-            client->sendTextMessage(message);
+        int from = json["from"].toInt(), to = json["to"].toInt();
 
-            if (qAbs(Board::getX(json["from"].toInt()) - Board::getX(json["to"].toInt())) == 2)
-                client->sendTextMessage("{\"cmd\":\"remove\",\"location\":" + QString::number(Board::indexAt((Board::getX(json["from"].toInt()) + Board::getX(json["to"].toInt())) / 2, (Board::getY(json["from"].toInt()) + Board::getY(json["to"].toInt())) / 2)) + "}");
+        if (pl.move(from, to)) {
+            move(from, to);
 
             if (pl.checkPlayerWon()) {
-                client->sendTextMessage("{\"cmd\":\"winner\",\"winner\":\"o\"}");
+                winner("o");
                 pl.reset();
             } else {
                 Board board = pl.getBoard();
@@ -55,15 +53,11 @@ void Server::processMessage(const QString &message) {
 
                 QVector<QPair<int, int>> moves = parseMoves(board, pl.getBoard());
 
-                for (const QPair<int, int> &move : moves) {
-                    client->sendTextMessage("{\"cmd\":\"move\",\"from\":" + QString::number(move.first) + ",\"to\":" + QString::number(move.second) + "}");
-
-                    if (qAbs(Board::getX(move.first) - Board::getX(move.second)) == 2)
-                        client->sendTextMessage("{\"cmd\":\"remove\",\"location\":" + QString::number(Board::indexAt((Board::getX(move.first) + Board::getX(move.second)) / 2, (Board::getY(move.first) + Board::getY(move.second)) / 2)) + "}");
-                }
+                for (const QPair<int, int> &m : moves)
+                    move(m.first, m.second);
 
                 if (pl.checkAiWon()) {
-                    client->sendTextMessage("{\"cmd\":\"winner\",\"winner\":\"x\"}");
+                    winner("x");
                     pl.reset();
                 }
             }
@@ -72,8 +66,31 @@ void Server::processMessage(const QString &message) {
 }
 
 void Server::socketDisconnected() {
-    delete client;
-    client = 0;
+    QWebSocket *client = qobject_cast<QWebSocket *>(sender());
+
+    if (client) {
+        clients.removeAll(client);
+        client->deleteLater();
+    }
+}
+
+void Server::winner(const QString &winner) {
+    sendMessage(QString("{\"cmd\": \"winner\", \"winner\": \"%1\"}").arg(winner));
+}
+
+void Server::move(int from, int to) {
+    sendMessage(QString("{\"cmd\": \"move\", \"from\": %1, \"to\": %2}").arg(from).arg(to));
+
+    int x0 = Board::getX(from), y0 = Board::getY(from);
+    int x1 = Board::getX(to), y1 = Board::getY(to);
+
+    if (qAbs(x0 - x1) == 2)
+        sendMessage(QString("{\"cmd\": \"remove\", \"location\": %1}").arg(Board::indexAt((x0 + x1) / 2, (y0 + y1) / 2)));
+}
+
+void Server::sendMessage(const QString &message) {
+    for (QWebSocket *client : clients)
+        client->sendTextMessage(message);
 }
 
 QVector<QPair<int, int>> Server::parseMoves(const Board &a, const Board &b) {
