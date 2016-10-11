@@ -206,7 +206,7 @@ function frame() {
     drawBoard();
     drawFrame();
 
-    if (animation == null && messages.length > 0) {
+    if (!lock && animation == null && messages.length > 0) {
         var message = messages.pop();
 
         switch (message.cmd) {
@@ -239,7 +239,10 @@ function frame() {
 
             case "winner":
                 lock = true;
-                setTimeout(alert.bind(null, (message.winner == "x" ? "AI" : "Player") + " won!"), 100);
+                setTimeout(function() {
+                    alert((message.winner == "x" ? "AI" : "Player") + " won!");
+                    lock = false;
+                }, 100);
                 break;
         }
     }

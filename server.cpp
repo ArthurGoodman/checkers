@@ -81,7 +81,7 @@ void Server::processMessage(const QString &message) {
                 highlight();
             }
         } else
-            return;
+            deselect();
     } else
         return;
 

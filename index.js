@@ -5,7 +5,7 @@ const fs = require("fs");
 var child = spawn("release/checkers.exe");
 
 child.stdout.on("data", function(data) {
-    process.stdout.write(data.toString());
+    process.stdout.write(data);
 });
 
 child.on("close", function(code) {
