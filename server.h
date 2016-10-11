@@ -17,6 +17,7 @@ class Server : public QObject {
 
     int selection;
     QVector<QPair<int, int>> validMoves;
+    bool lastMoveIsEat, lockSelection;
 
 public:
     explicit Server();
@@ -28,13 +29,15 @@ private slots:
     void socketDisconnected();
 
 private:
-    void init(QWebSocket *client);
+    void reset();
+    void init(QWebSocket *client = 0);
     void select(int index);
     void deselect();
-    void highlight();
+    void highlight(QWebSocket *client = 0);
     void move(int from, int to);
     void winner(const QString &winner);
-    void sendMessage(const QString &message);
+    void sendMessage(const QString &message, QWebSocket *client = 0);
     QVector<QPair<int, int>> parseMoves(const Board &a, const Board &b);
-    void findValidMoves(const Board &board);
+    bool isMoveValid(int from, int to);
+    void findValidMoves();
 };

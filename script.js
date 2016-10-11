@@ -97,45 +97,22 @@ function processMessage(message) {
 
 function sendMessage(message) {
     if (websocket != null)
-        websocket.send(JSON.stringify(message));
+        websocket.send(message);
 }
 
 function click(x, y) {
     if (lock || animation != null || board == null)
         return;
 
-    sendMessage({
-        x: x,
-        y: y
-    });
-
-    // if (at(x, y) == "o" || at(x, y) == "p") {
-    //     if (selection == indexAt(x, y))
-    //         selection = null;
-    //     else
-    //         selection = indexAt(x, y);
-    // } else if (selection != null) {
-    //     if (at(x, y) == "e")
-    //         makeMove(selection, indexAt(x, y));
-
-    //     selection = null;
-    // }
+    sendMessage(indexAt(x, y).toString());
 }
-
-// function makeMove(from, to) {
-//     sendMessage({
-//         cmd: "move",
-//         from: from,
-//         to: to
-//     });
-// }
 
 function drawBackground() {
     ctx.clearRect(0, 0, BoardSize, BoardSize);
 
     for (var x = 0; x < BoardDim; x++)
         for (var y = 0; y < BoardDim; y++) {
-            ctx.fillStyle = (x + y) % 2 == 0 ? "#eee" : "#ddd";
+            ctx.fillStyle = highlights.indexOf(indexAt(x, y)) !== -1 ? "#afa" : (x + y) % 2 == 0 ? "#eee" : "#ddd";
             ctx.fillRect(x * CellSize, y * CellSize, CellSize + 1, CellSize + 1);
         }
 }
@@ -250,6 +227,7 @@ function frame() {
                 break;
 
             case "move":
+                highlights = [];
                 selection = message.from;
                 target = message.to;
                 animation = 0;
@@ -260,8 +238,8 @@ function frame() {
                 break;
 
             case "winner":
-                alert((message.winner == "x" ? "AI" : "Player") + " won!");
                 lock = true;
+                setTimeout(alert.bind(null, (message.winner == "x" ? "AI" : "Player") + " won!"), 100);
                 break;
         }
     }
