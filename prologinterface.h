@@ -13,7 +13,7 @@ public:
     void ai();
     bool checkPlayerWon();
     bool checkAiWon();
-    Board getBoard();
+    const Board &getBoard();
 
     void reset();
 };

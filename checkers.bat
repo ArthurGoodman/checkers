@@ -1,2 +1,2 @@
 @echo off
-node checkers.js
+node index.js

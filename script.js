@@ -13,6 +13,8 @@ var selection = null;
 var target = null;
 var animation = null;
 
+var highlights = [];
+
 var messages = [];
 
 var lock = false;
@@ -102,26 +104,31 @@ function click(x, y) {
     if (lock || animation != null || board == null)
         return;
 
-    if (at(x, y) == "o" || at(x, y) == "p") {
-        if (selection == indexAt(x, y))
-            selection = null;
-        else
-            selection = indexAt(x, y);
-    } else if (selection != null) {
-        if (at(x, y) == "e")
-            makeMove(selection, indexAt(x, y));
-
-        selection = null;
-    }
-}
-
-function makeMove(from, to) {
     sendMessage({
-        cmd: "move",
-        from: from,
-        to: to
+        x: x,
+        y: y
     });
+
+    // if (at(x, y) == "o" || at(x, y) == "p") {
+    //     if (selection == indexAt(x, y))
+    //         selection = null;
+    //     else
+    //         selection = indexAt(x, y);
+    // } else if (selection != null) {
+    //     if (at(x, y) == "e")
+    //         makeMove(selection, indexAt(x, y));
+
+    //     selection = null;
+    // }
 }
+
+// function makeMove(from, to) {
+//     sendMessage({
+//         cmd: "move",
+//         from: from,
+//         to: to
+//     });
+// }
 
 function drawBackground() {
     ctx.clearRect(0, 0, BoardSize, BoardSize);
@@ -230,6 +237,18 @@ function frame() {
                 board = message.board;
                 break;
 
+            case "select":
+                selection = message.index;
+                break;
+
+            case "deselect":
+                selection = null;
+                break;
+
+            case "highlight":
+                highlights = message.cells;
+                break;
+
             case "move":
                 selection = message.from;
                 target = message.to;
@@ -237,7 +256,7 @@ function frame() {
                 break;
 
             case "remove":
-                board[message.location] = "e";
+                board[message.index] = "e";
                 break;
 
             case "winner":

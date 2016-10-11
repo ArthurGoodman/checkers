@@ -15,6 +15,9 @@ class Server : public QObject {
 
     PrologInterface pl;
 
+    int selection;
+    QVector<QPair<int, int>> validMoves;
+
 public:
     explicit Server();
     ~Server();
@@ -25,8 +28,13 @@ private slots:
     void socketDisconnected();
 
 private:
-    void winner(const QString &winner);
+    void init(QWebSocket *client);
+    void select(int index);
+    void deselect();
+    void highlight();
     void move(int from, int to);
+    void winner(const QString &winner);
     void sendMessage(const QString &message);
     QVector<QPair<int, int>> parseMoves(const Board &a, const Board &b);
+    void findValidMoves(const Board &board);
 };

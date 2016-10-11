@@ -23,17 +23,12 @@ PrologInterface::PrologInterface()
 
 bool PrologInterface::move(int from, int to) {
     try {
-        long fromL = from / Board::BoardDim + 1;
-        long fromC = from % Board::BoardDim + 1;
-        long toL = to / Board::BoardDim + 1;
-        long toC = to % Board::BoardDim + 1;
-
         PlTermv av(6);
         PlCall("term_to_atom", PlTermv(av[0], board.toTerm().toStdString().data()));
-        av[1] = fromL;
-        av[2] = fromC;
-        av[3] = toL;
-        av[4] = toC;
+        av[1] = Board::getY(from) + 1;
+        av[2] = Board::getX(from) + 1;
+        av[3] = Board::getY(to) + 1;
+        av[4] = Board::getX(to) + 1;
 
         if (!PlCall("move", av))
             return false;
@@ -89,7 +84,7 @@ bool PrologInterface::checkAiWon() {
     }
 }
 
-Board PrologInterface::getBoard() {
+const Board &PrologInterface::getBoard() {
     return board;
 }
 

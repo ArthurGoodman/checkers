@@ -8,7 +8,8 @@
 
 #include "board.h"
 
-Server::Server() {
+Server::Server()
+    : selection(-1) {
     webSocketServer = new QWebSocketServer("Checkers Server", QWebSocketServer::NonSecureMode, this);
 
     if (webSocketServer->listen(QHostAddress::Any, port))
@@ -26,7 +27,7 @@ void Server::onNewConnection() {
     connect(client, &QWebSocket::textMessageReceived, this, &Server::processMessage);
     connect(client, &QWebSocket::disconnected, this, &Server::socketDisconnected);
 
-    client->sendTextMessage(QString("{\"cmd\": \"board\", \"board\": %1}").arg(pl.getBoard().toJson()));
+    init(client);
 
     clients << client;
 }
@@ -37,32 +38,46 @@ void Server::processMessage(const QString &message) {
     QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
     QJsonObject json = jsonDoc.object();
 
-    if (json["cmd"] == "move") {
-        int from = json["from"].toInt(), to = json["to"].toInt();
+    //    if (json["cmd"] == "move") {
+    //        int from = json["from"].toInt(), to = json["to"].toInt();
 
-        if (pl.move(from, to)) {
-            move(from, to);
+    //        if (pl.move(from, to)) {
+    //            move(from, to);
 
-            if (pl.checkPlayerWon()) {
-                winner("o");
-                pl.reset();
-            } else {
-                Board board = pl.getBoard();
+    //            if (pl.checkPlayerWon()) {
+    //                winner("o");
+    //                pl.reset();
+    //            } else {
+    //                Board board = pl.getBoard();
 
-                pl.ai();
+    //                pl.ai();
 
-                QVector<QPair<int, int>> moves = parseMoves(board, pl.getBoard());
+    //                QVector<QPair<int, int>> moves = parseMoves(board, pl.getBoard());
 
-                for (const QPair<int, int> &m : moves)
-                    move(m.first, m.second);
+    //                for (const QPair<int, int> &m : moves)
+    //                    move(m.first, m.second);
 
-                if (pl.checkAiWon()) {
-                    winner("x");
-                    pl.reset();
-                }
-            }
-        }
+    //                if (pl.checkAiWon()) {
+    //                    winner("x");
+    //                    pl.reset();
+    //                }
+    //            }
+    //        }
+    //    }
+
+    const Board &board = pl.getBoard();
+
+    int x = json["x"].toInt(), y = json["y"].toInt(), index = Board::indexAt(x, y);
+
+    if (selection != index && (board.at(x, y) == 'o' || board.at(x, y) == 'p'))
+        select(index);
+    else if (selection == index || (selection != -1 && board.at(x, y) != 'e'))
+        deselect();
+    else if (selection != -1) {
     }
+
+    findValidMoves(board);
+    highlight();
 }
 
 void Server::socketDisconnected() {
@@ -74,8 +89,37 @@ void Server::socketDisconnected() {
     }
 }
 
-void Server::winner(const QString &winner) {
-    sendMessage(QString("{\"cmd\": \"winner\", \"winner\": \"%1\"}").arg(winner));
+void Server::init(QWebSocket *client) {
+    client->sendTextMessage(QString("{\"cmd\": \"board\", \"board\": %1}").arg(pl.getBoard().toJson()));
+
+    if (selection != -1)
+        client->sendTextMessage(QString("{\"cmd\": \"select\", \"index\": %1}").arg(selection));
+}
+
+void Server::select(int index) {
+    selection = index;
+    sendMessage(QString("{\"cmd\": \"select\", \"index\": %1}").arg(index));
+}
+
+void Server::deselect() {
+    selection = -1;
+    sendMessage("{\"cmd\": \"deselect\"}");
+}
+
+void Server::highlight() {
+    QString moves = "";
+
+    for (int i = 0; i < validMoves.size(); i++) {
+        if (selection != -1 && validMoves[i].first != selection)
+            continue;
+
+        if (i > 0)
+            moves += ", ";
+
+        moves += QString("%1").arg(selection == -1 ? validMoves[i].first : validMoves[i].second);
+    }
+
+    sendMessage(QString("{\"cmd\": \"highlight\", \"cells\": \"%1\"}").arg(moves));
 }
 
 void Server::move(int from, int to) {
@@ -85,7 +129,11 @@ void Server::move(int from, int to) {
     int x1 = Board::getX(to), y1 = Board::getY(to);
 
     if (qAbs(x0 - x1) == 2)
-        sendMessage(QString("{\"cmd\": \"remove\", \"location\": %1}").arg(Board::indexAt((x0 + x1) / 2, (y0 + y1) / 2)));
+        sendMessage(QString("{\"cmd\": \"remove\", \"index\": %1}").arg(Board::indexAt((x0 + x1) / 2, (y0 + y1) / 2)));
+}
+
+void Server::winner(const QString &winner) {
+    sendMessage(QString("{\"cmd\": \"winner\", \"winner\": \"%1\"}").arg(winner));
 }
 
 void Server::sendMessage(const QString &message) {
@@ -144,4 +192,7 @@ QVector<QPair<int, int>> Server::parseMoves(const Board &a, const Board &b) {
     }
 
     return moves;
+}
+
+void Server::findValidMoves(const Board &board) {
 }
