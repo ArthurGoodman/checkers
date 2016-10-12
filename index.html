@@ -1,10 +1,15 @@
 <html>
     <head>
         <title>Checkers</title>
+        <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="bootstrap/css/bootstrap-theme.min.css">
         <link rel="stylesheet" href="style.css">
         <script src="jquery/jquery.min.js"></script>
     </head>
-    <body onresize="onResize();">
+    <body>
+        <p>
+            <button id="reset" class="btn btn-default">Reset</button>
+        </p>
         <div align="center">
             <canvas id="checkers" class="boxshadow"></canvas>
         </div>

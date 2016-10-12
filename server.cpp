@@ -36,6 +36,11 @@ void Server::processMessage(const QString &message) {
 
     int index = message.toInt(), x = Board::getX(index), y = Board::getY(index);
 
+    if (index < 0) {
+        reset();
+        return;
+    }
+
     if (selection != index && (board.at(x, y) == 'o' || board.at(x, y) == 'p'))
         select(index);
     else if (selection == index || (selection != -1 && board.at(x, y) != 'e'))
@@ -101,6 +106,7 @@ void Server::socketDisconnected() {
 }
 
 void Server::reset() {
+    selection = -1;
     pl.reset();
     init();
 }
@@ -130,7 +136,7 @@ void Server::deselect() {
         return;
 
     selection = -1;
-    sendMessage("{\"cmd\": \"deselect\"}");
+    sendMessage("{\"cmd\": \"select\", \"index\": null}");
 }
 
 void Server::highlight(QWebSocket *client) {

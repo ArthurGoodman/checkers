@@ -19,8 +19,6 @@ var messages = [];
 
 var lock = false;
 
-onResize();
-
 function indexAt(x, y) {
     return y * BoardDim + x;
 }
@@ -37,7 +35,7 @@ function at(x, y) {
     return board[indexAt(x, y)];
 }
 
-canvas.addEventListener("click", function(e) {
+$(canvas).on("click", function(e) {
     var x, y;
 
     if (e.pageX != undefined && e.pageY != undefined) {
@@ -54,14 +52,20 @@ canvas.addEventListener("click", function(e) {
     click(Math.floor(x / BoardSize * BoardDim), Math.floor(y / BoardSize * BoardDim));
 });
 
-function onResize() {
-    BoardSize = Math.min(window.innerWidth, window.innerHeight) - 45;
+$(window).on("resize", function() {
+    BoardSize = Math.min(window.innerWidth, window.innerHeight) - 70;
 
     canvas.width = BoardSize;
     canvas.height = BoardSize;
 
     CellSize = BoardSize / BoardDim;
-}
+});
+
+$(window).resize();
+
+$("#reset").on("click", function() {
+    sendMessage(-1);
+});
 
 $(document).ready(function() {
     try {
@@ -211,15 +215,12 @@ function frame() {
 
         switch (message.cmd) {
             case "board":
+                selection = null;
                 board = message.board;
                 break;
 
             case "select":
                 selection = message.index;
-                break;
-
-            case "deselect":
-                selection = null;
                 break;
 
             case "highlight":

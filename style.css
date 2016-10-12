@@ -1,9 +1,10 @@
 body {
-    padding-top: 15px;
+    padding-top: 5px;
+    padding-left: 5px;
     background-image: url("bg.png");
     background-color: #424242;
 }
 
-canvas {
+#checkers, #reset {
     box-shadow: 0px -0px 20px rgba(0, 0, 0, 0.75);
 }
