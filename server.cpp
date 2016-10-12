@@ -48,17 +48,18 @@ void Server::processMessage(const QString &message) {
     else if (selection != -1) {
         if (isMoveValid(selection, index)) {
             pl.move(selection, index);
+            move(selection, index);
 
             lastMoveIsEat = false;
 
             if (qAbs(Board::getX(selection) - x) == 2)
                 lastMoveIsEat = true;
 
-            move(selection, index);
-
             selection = index;
             lockSelection = false;
             findValidMoves();
+
+            lastMoveIsEat = false;
 
             if (pl.checkPlayerWon()) {
                 winner("o");
@@ -107,7 +108,11 @@ void Server::socketDisconnected() {
 
 void Server::reset() {
     selection = -1;
+    lastMoveIsEat = false;
+    lockSelection = false;
+
     pl.reset();
+
     init();
 }
 
@@ -286,24 +291,14 @@ void Server::findValidMoves() {
                 }
             }
     } else if (selection != -1) {
-        if (lastMoveIsEat)
-            lockSelection = true;
+        QMutableVectorIterator<QPair<int, int>> i(validMoves);
 
-        bool clear = true;
-
-        for (int i = 0; i < validMoves.size(); i++)
-            if (validMoves[i].first == selection)
-                clear = false;
-
-        if (clear)
-            validMoves.clear();
-        else {
-            QMutableVectorIterator<QPair<int, int>> i(validMoves);
-
-            while (i.hasNext()) {
-                if (i.next().first != selection)
-                    i.remove();
-            }
+        while (i.hasNext()) {
+            if (i.next().first != selection)
+                i.remove();
         }
+
+        if (!validMoves.empty() && lastMoveIsEat)
+            lockSelection = true;
     }
 }
