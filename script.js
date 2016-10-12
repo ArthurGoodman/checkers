@@ -2,7 +2,7 @@ var BoardDim = 8;
 var BoardSize = null;
 var CellSize = null;
 
-var websocket = null;
+var ws = null;
 
 var canvas = $("#checkers")[0];
 var ctx = canvas.getContext("2d");
@@ -68,29 +68,26 @@ $("#reset").on("click", function() {
 });
 
 $(document).ready(function() {
-    try {
-        if (typeof MozWebSocket == "function")
-            WebSocket = MozWebSocket;
+    var serverLocation = "ws://" + (location.hostname.length > 0 ? location.hostname : "localhost") + ":43567";
 
-        if (websocket && websocket.readyState == 1)
-            websocket.close();
+    function startWebSocket() {
+        ws = new WebSocket(serverLocation);
 
-        console.log();
-        websocket = new WebSocket("ws://" + (location.hostname.length > 0 ? location.hostname : "localhost") + ":43567");
+        ws.onopen = function(e) {};
 
-        websocket.onopen = function(e) {};
+        ws.onclose = function(e) {
+            setTimeout(startWebSocket, 1000);
+        };
 
-        websocket.onclose = function(e) {};
-
-        websocket.onmessage = function(e) {
+        ws.onmessage = function(e) {
             console.log(e.data);
             processMessage(JSON.parse(e.data));
         };
 
-        websocket.onerror = function(e) {};
-    } catch (exception) {
-        console.log("error: ", exception);
+        ws.onerror = function(e) {};
     }
+
+    startWebSocket();
 
     window.requestAnimationFrame(frame);
 })
@@ -100,8 +97,8 @@ function processMessage(message) {
 }
 
 function sendMessage(message) {
-    if (websocket != null)
-        websocket.send(message);
+    if (ws != null)
+        ws.send(message);
 }
 
 function click(x, y) {
