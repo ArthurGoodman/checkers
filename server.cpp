@@ -140,12 +140,20 @@ void Server::deselect() {
 }
 
 void Server::highlight(QWebSocket *client) {
-    QString moves = "";
+    QString cells = "";
 
-    for (int i = 0; i < validMoves.size(); i++)
-        moves += QString(i > 0 ? ", %1" : "%1").arg(selection == -1 ? validMoves[i].first : validMoves[i].second);
+    QSet<int> highlights;
 
-    QString message = QString("{\"cmd\": \"highlight\", \"cells\": [%1]}").arg(moves);
+    for (int i = 0; i < validMoves.size(); i++) {
+        int cell = selection == -1 ? validMoves[i].first : validMoves[i].second;
+
+        if (!highlights.contains(cell)) {
+            highlights << cell;
+            cells += QString(i > 0 ? ", %1" : "%1").arg(cell);
+        }
+    }
+
+    QString message = QString("{\"cmd\": \"highlight\", \"cells\": [%1]}").arg(cells);
 
     sendMessage(message, client);
 }
