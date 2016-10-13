@@ -19,9 +19,3 @@ SOURCES += main.cpp \
     server.cpp \
     prologinterface.cpp \
     board.cpp
-
-OTHER_FILES += \
-    checkers.html \
-    checkers.js \
-    checkers.pl \
-    style.css
