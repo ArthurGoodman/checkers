@@ -1,3 +1,5 @@
+"use strict";
+
 var canvas = $("#checkers")[0];
 
 var board = new Board(canvas);

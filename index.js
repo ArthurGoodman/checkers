@@ -1,3 +1,5 @@
+"use strict";
+
 const spawn = require("child_process").spawn;
 const http = require("http");
 const fs = require("fs");

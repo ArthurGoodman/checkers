@@ -1,3 +1,5 @@
+"use strict";
+
 function Engine(board) {
     var webSocket = null;
 
