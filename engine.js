@@ -16,7 +16,7 @@ function Engine(board) {
     }
 
     this.start = function start() {
-        var serverLocation = "ws://" + (location.hostname.length > 0 ? location.hostname : "localhost") + ":43567";
+        var serverLocation = "ws://" + (location.hostname.length > 0 ? location.hostname : "localhost") + ":443";
 
         webSocket = new WebSocket(serverLocation);
 

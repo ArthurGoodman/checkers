@@ -8,7 +8,7 @@ class QWebSocket;
 #include "prologinterface.h"
 
 class Server : public QObject {
-    static const ushort port = 43567;
+    static const ushort port = 443;
 
     QWebSocketServer *webSocketServer;
     QList<QWebSocket *> clients;
