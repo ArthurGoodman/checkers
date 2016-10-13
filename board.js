@@ -85,7 +85,7 @@ function Board(canvas) {
 
             for (var x = 0; x < BoardDim; x++)
                 for (var y = 0; y < BoardDim; y++) {
-                    ctx.fillStyle = highlights.indexOf(indexAt(x, y)) !== -1 ? "#afa" : (x + y) % 2 == 0 ? "#eee" : "#ddd";
+                    ctx.fillStyle = highlights.indexOf(indexAt(x, y)) != -1 ? "#afa" : (x + y) % 2 == 0 ? "#eee" : "#ddd";
                     ctx.fillRect(x * cellSize, y * cellSize, cellSize + 1, cellSize + 1);
                 }
         }

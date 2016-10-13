@@ -17,10 +17,10 @@ child.on("close", function(code) {
 var cache = {};
 
 http.createServer(function(req, res) {
-    var url = req.url === "/" ? "./index.html" : "." + req.url;
+    var url = req.url == "/" ? "./index.html" : "." + req.url;
 
     function respond(buffer) {
-        if (buffer === null) {
+        if (buffer == null) {
             res.statusCode = 404;
             res.end();
         } else {
@@ -29,7 +29,7 @@ http.createServer(function(req, res) {
         }
     }
 
-    if (cache[url] === undefined)
+    if (cache[url] == undefined)
         fs.readFile(url, function(error, buffer) {
             respond(cache[url] = error ? null : buffer);
         });
