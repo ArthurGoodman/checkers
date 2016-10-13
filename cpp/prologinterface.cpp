@@ -10,7 +10,7 @@ static char *args[] = {const_cast<char *>("-t"), const_cast<char *>("--quiet"), 
 PrologInterface::PrologInterface()
     : engine(sizeof(args) / sizeof(char *), args) {
     try {
-        PlCall("consult('checkers.pl').");
+        PlCall("consult('pl/checkers.pl').");
 
         PlCall("assert(min_to_move(o/_)).");
         PlCall("assert(max_to_move(x/_)).");
