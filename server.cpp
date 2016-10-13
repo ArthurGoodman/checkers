@@ -119,7 +119,7 @@ void Server::reset() {
 void Server::init(QWebSocket *client) {
     Board board = pl.getBoard();
 
-    sendMessage(QString("{\"cmd\": \"board\", \"board\": %1}").arg(board.toJson()), client);
+    sendMessage(QString("{\"cmd\": \"board\", \"data\": %1}").arg(board.toJson()), client);
 
     if (selection != -1)
         sendMessage(QString("{\"cmd\": \"select\", \"index\": %1}").arg(selection), client);
