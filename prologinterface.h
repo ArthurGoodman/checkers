@@ -11,8 +11,7 @@ public:
 
     bool move(int from, int to);
     void ai();
-    bool checkPlayerWon();
-    bool checkAiWon();
+    bool checkForWinner(const QString &s);
     const Board &getBoard();
 
     void reset();

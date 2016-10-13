@@ -61,8 +61,12 @@ void Server::processMessage(const QString &message) {
 
             lastMoveIsEat = false;
 
-            if (pl.checkPlayerWon()) {
-                winner("o");
+            if (pl.checkForWinner("o")) {
+                if (pl.checkForWinner("x"))
+                    winner("");
+                else
+                    winner("o");
+
                 reset();
                 return;
             } else if (!lockSelection) {
@@ -77,8 +81,12 @@ void Server::processMessage(const QString &message) {
                 for (const QPair<int, int> &m : moves)
                     move(m.first, m.second);
 
-                if (pl.checkAiWon()) {
-                    winner("x");
+                if (pl.checkForWinner("x")) {
+                    if (pl.checkForWinner("o"))
+                        winner("");
+                    else
+                        winner("x");
+
                     reset();
                     return;
                 }

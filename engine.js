@@ -76,7 +76,7 @@ function Engine(board) {
                 case "winner":
                     lock = true;
                     setTimeout(function() {
-                        alert((message.winner == "x" ? "AI" : "Player") + " won!");
+                        alert(message.winner === "" ? "Draw!" : (message.winner == "x" ? "AI" : "Player") + " won!");
                         lock = false;
                     }, 100);
                     break;

@@ -58,24 +58,11 @@ void PrologInterface::ai() {
     }
 }
 
-bool PrologInterface::checkPlayerWon() {
+bool PrologInterface::checkForWinner(const QString &s) {
     try {
         PlTermv av(2);
         PlCall("term_to_atom", PlTermv(av[0], board.toTerm().toStdString().data()));
-        av[1] = "o";
-
-        return PlCall("goal", av);
-    } catch (const PlException &e) {
-        std::cout << (char *)e;
-        return false;
-    }
-}
-
-bool PrologInterface::checkAiWon() {
-    try {
-        PlTermv av(2);
-        PlCall("term_to_atom", PlTermv(av[0], board.toTerm().toStdString().data()));
-        av[1] = "x";
+        av[1] = s.toStdString().data();
 
         return PlCall("goal", av);
     } catch (const PlException &e) {
