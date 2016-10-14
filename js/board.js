@@ -29,10 +29,6 @@ function Board(canvas) {
         return Math.floor(index / BoardDim);
     }
 
-    function at(x, y) {
-        return data[indexAt(x, y)];
-    }
-
     this.resize = function(size) {
         boardSize = size;
 
@@ -57,7 +53,6 @@ function Board(canvas) {
         selection = from;
         target = to;
         animation = 0;
-        redraw = true;
     }
 
     this.map = function(x, y) {
@@ -74,11 +69,6 @@ function Board(canvas) {
         redraw = true;
     }
 
-    this.deselect = function() {
-        selection = null;
-        redraw = true;
-    }
-
     this.remove = function(index) {
         data[index] = "e";
         redraw = true;
@@ -90,8 +80,6 @@ function Board(canvas) {
     }
 
     function drawBackground() {
-        ctx.clearRect(0, 0, boardSize, boardSize);
-
         for (var x = 0; x < BoardDim; x++)
             for (var y = 0; y < BoardDim; y++) {
                 ctx.fillStyle = highlights.indexOf(indexAt(x, y)) != -1 ? "#afa" : (x + y) % 2 == 0 ? "#eee" : "#ddd";
@@ -114,9 +102,7 @@ function Board(canvas) {
         }
     }
 
-    function drawPiece(x, y, color, king) {
-        var fill = selection == indexAt(x, y);
-
+    function drawPiece(x, y, color, king, fill) {
         x = (x + 0.5) * cellSize;
         y = (y + 0.5) * cellSize;
 
@@ -129,30 +115,30 @@ function Board(canvas) {
 
         drawCircle(x, y, radius, 3, color, fill);
 
-        if (king) {
-            drawCircle(x, y, radius, 3, color);
+        if (king && !fill) {
             drawCircle(x, y, radius / 1.3, 3, color);
             drawCircle(x, y, radius / 1.9, 3, color);
             drawCircle(x, y, radius / 3.5, 3, color);
         }
     }
 
-    function processCell(x, y) {
-        if (at(x, y) != "n" && at(x, y) != "e")
-            drawPiece(x, y, (at(x, y) == "x" || at(x, y) == "y") ? "#e33" : "#33e", at(x, y) == "y" || at(x, y) == "p");
+    function processCell(i) {
+        var v = data[i];
+
+        if (v != "n" && v != "e")
+            drawPiece(getX(i), getY(i), (v == "x" || v == "y") ? "#e33" : "#33e", v == "y" || v == "p", selection == i);
     }
 
     function drawBoard() {
         if (data == null)
             return;
 
-        for (var x = 0; x < BoardDim; x++)
-            for (var y = 0; y < BoardDim; y++)
-                if (selection != indexAt(x, y))
-                    processCell(x, y);
+        for (var i = 0; i < data.length; i++)
+            if (selection != i)
+                processCell(i);
 
         if (selection != null)
-            processCell(getX(selection), getY(selection));
+            processCell(selection);
 
         if (animation != null) {
             animation += 0.05;
@@ -186,6 +172,8 @@ function Board(canvas) {
     this.draw = function() {
         if (!redraw && animation == null)
             return;
+
+        ctx.clearRect(0, 0, boardSize, boardSize);
 
         drawBackground();
         drawBoard();

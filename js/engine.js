@@ -7,6 +7,7 @@ function Engine(board) {
     var lock = false;
 
     function processMessage(message) {
+        console.log(message);
         messages.push(message);
     }
 
@@ -27,7 +28,6 @@ function Engine(board) {
         };
 
         webSocket.onmessage = function(e) {
-            console.log(e.data);
             processMessage(JSON.parse(e.data));
         };
 
@@ -53,7 +53,7 @@ function Engine(board) {
 
             switch (message.cmd) {
                 case "board":
-                    board.deselect();
+                    board.select(null);
                     board.setData(message.data);
                     break;
 

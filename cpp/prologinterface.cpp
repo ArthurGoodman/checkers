@@ -10,10 +10,11 @@ static char *args[] = {const_cast<char *>("-t"), const_cast<char *>("--quiet"), 
 PrologInterface::PrologInterface()
     : engine(sizeof(args) / sizeof(char *), args) {
     try {
-        PlCall("consult('pl/checkers.pl').");
-
-        PlCall("assert(min_to_move(o/_)).");
-        PlCall("assert(max_to_move(x/_)).");
+        PlCall("consult('pl/alphabeta.pl').");
+        PlCall("consult('pl/game.pl').");
+        PlCall("consult('pl/heuristic.pl').");
+        PlCall("consult('pl/moves.pl').");
+        PlCall("consult('pl/utility.pl').");
 
         reset();
     } catch (const PlException &e) {

@@ -26,13 +26,13 @@ $(window).on("resize", function() {
     board.resize(Math.min(window.innerWidth, window.innerHeight) - 70);
 });
 
-$(window).resize();
-
 $("#reset").on("click", function() {
     engine.reset();
 });
 
 $(document).ready(function() {
+    $(window).resize();
+
     engine.start();
 
     function tick() {
@@ -41,4 +41,4 @@ $(document).ready(function() {
     }
 
     tick();
-})
+});
