@@ -13,9 +13,11 @@ LIBS += -L"C:/Program Files (x86)/swipl/bin" -lswipl
 HEADERS += \
     server.h \
     prologinterface.h \
-    board.h
+    board.h \
+    engine.h
 
 SOURCES += main.cpp \
     server.cpp \
     prologinterface.cpp \
-    board.cpp
+    board.cpp \
+    engine.cpp

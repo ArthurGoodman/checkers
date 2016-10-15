@@ -1,6 +1,5 @@
 #include "board.h"
 
-#include <iostream>
 #include <exception>
 
 int Board::getX(int index) {
@@ -44,10 +43,10 @@ Board &Board::operator=(const PlTerm &term) {
 
         for (int i = 1; i <= term.arity(); i++)
             data << ((char *)term[i])[0];
-    } catch (const PlException &e) {
-        std::cout << (char *)e;
+    } catch (PlException &e) {
+        QTextStream(stdout) << (char *)e << "\n";
     } catch (const std::exception &e) {
-        std::cout << "error: " << e.what() << "\n";
+        QTextStream(stdout) << "error: " << e.what() << "\n";
     }
 
     if (this->data.size() != BoardDim * BoardDim)
@@ -60,13 +59,13 @@ QString Board::toTerm() const {
     if (data.isEmpty())
         return "";
 
-    QString term = "b(";
+    QString term = "board(";
 
     for (int i = 0; i < data.size(); i++) {
         if (i > 0)
             term += ",";
 
-        term += data[i];
+        term += QString("'%1'").arg(data[i]);
     }
 
     return term + ")";
@@ -82,7 +81,7 @@ QString Board::toJson() const {
         if (i > 0)
             json += ",";
 
-        json += (QString) "\"" + data[i] + "\"";
+        json += QString("\"%1\"").arg(data[i]);
     }
 
     return json + "]";
@@ -90,14 +89,14 @@ QString Board::toJson() const {
 
 char Board::at(int i) const {
     if (i < 0 || i >= size())
-        return 'n';
+        return ' ';
 
     return data.at(i);
 }
 
 char Board::at(int x, int y) const {
     if (x < 0 || x >= BoardDim || y < 0 || y >= BoardDim)
-        return 'n';
+        return ' ';
 
     return data.at(indexAt(x, y));
 }

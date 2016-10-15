@@ -3,12 +3,10 @@
 #include <QWebSocketServer>
 #include <QWebSocket>
 
-#include "board.h"
+#include "engine.h"
 
-Server::Server()
-    : selection(-1) {
-    findValidMoves();
-
+Server::Server(Engine *engine)
+    : engine(engine) {
     webSocketServer = new QWebSocketServer("Checkers Server", QWebSocketServer::NonSecureMode, this);
 
     if (webSocketServer->listen(QHostAddress::Any, port))
@@ -32,77 +30,7 @@ void Server::onNewConnection() {
 }
 
 void Server::processMessage(const QString &message) {
-    const Board &board = pl.getBoard();
-
-    int index = message.toInt(), x = Board::getX(index), y = Board::getY(index);
-
-    if (index < 0) {
-        reset();
-        return;
-    }
-
-    if (selection != index && (board.at(x, y) == 'o' || board.at(x, y) == 'p'))
-        select(index);
-    else if (selection == index || (selection != -1 && board.at(x, y) != 'e'))
-        deselect();
-    else if (selection != -1) {
-        if (isMoveValid(selection, index)) {
-            pl.move(selection, index);
-            move(selection, index);
-
-            lastMoveIsEat = false;
-
-            if (qAbs(Board::getX(selection) - x) == 2)
-                lastMoveIsEat = true;
-
-            selection = index;
-            lockSelection = false;
-            findValidMoves();
-
-            lastMoveIsEat = false;
-
-            if (pl.checkForWinner("o")) {
-                if (pl.checkForWinner("x"))
-                    winner("");
-                else
-                    winner("o");
-
-                reset();
-                return;
-            } else if (!lockSelection) {
-                selection = -1;
-
-                Board board = pl.getBoard();
-
-                pl.ai();
-
-                QVector<QPair<int, int>> moves = parseMoves(board, pl.getBoard());
-
-                for (const QPair<int, int> &m : moves)
-                    move(m.first, m.second);
-
-                if (pl.checkForWinner("x")) {
-                    if (pl.checkForWinner("o"))
-                        winner("");
-                    else
-                        winner("x");
-
-                    reset();
-                    return;
-                }
-            } else {
-                select(selection);
-                highlight();
-            }
-        } else
-            deselect();
-    } else
-        return;
-
-    if (!lockSelection) {
-        findValidMoves();
-        highlight();
-    }
+    engine->click(message.toInt());
 }
 
 void Server::socketDisconnected() {
@@ -114,41 +42,22 @@ void Server::socketDisconnected() {
     }
 }
 
-void Server::reset() {
-    selection = -1;
-    lastMoveIsEat = false;
-    lockSelection = false;
-
-    pl.reset();
-
-    init();
-}
-
 void Server::init(QWebSocket *client) {
-    Board board = pl.getBoard();
+    const Board &board = engine->getBoard();
 
     sendMessage(QString("{\"cmd\": \"board\", \"data\": %1}").arg(board.toJson()), client);
 
-    if (selection != -1)
-        sendMessage(QString("{\"cmd\": \"select\", \"index\": %1}").arg(selection), client);
+    if (engine->getSelection() != -1)
+        sendMessage(QString("{\"cmd\": \"select\", \"index\": %1}").arg(engine->getSelection()), client);
 
-    findValidMoves();
     highlight(client);
 }
 
 void Server::select(int index) {
-    if (selection != index && lockSelection)
-        return;
-
-    selection = index;
     sendMessage(QString("{\"cmd\": \"select\", \"index\": %1}").arg(index));
 }
 
 void Server::deselect() {
-    if (lockSelection)
-        return;
-
-    selection = -1;
     sendMessage("{\"cmd\": \"select\", \"index\": null}");
 }
 
@@ -157,8 +66,10 @@ void Server::highlight(QWebSocket *client) {
 
     QSet<int> highlights;
 
+    const QVector<QPair<int, int>> &validMoves = engine->getValidMoves();
+
     for (int i = 0; i < validMoves.size(); i++) {
-        int cell = selection == -1 ? validMoves[i].first : validMoves[i].second;
+        int cell = engine->getSelection() == -1 ? validMoves.at(i).first : validMoves.at(i).second;
 
         if (!highlights.contains(cell)) {
             highlights << cell;
@@ -193,120 +104,4 @@ void Server::sendMessage(const QString &message, QWebSocket *client) {
     else
         for (QWebSocket *client : clients)
             client->sendTextMessage(message);
-}
-
-QVector<QPair<int, int>> Server::parseMoves(const Board &a, const Board &b) {
-    QVector<QPair<int, int>> moves;
-
-    int location = -1, newLocation = -1;
-    int x, y;
-
-    for (int i = 0; i < Board::size(); i++)
-        if ((a.at(i) == 'x' || a.at(i) == 'y') && b.at(i) == 'e') {
-            location = i;
-            x = Board::getX(location);
-            y = Board::getY(location);
-            break;
-        }
-
-    char type = a.at(location);
-
-    QSet<QPair<int, int>> eaten;
-
-    while (location != -1) {
-        if (a.at(x + 1, y + 1) == 'e' && (b.at(x + 1, y + 1) == 'x' || b.at(x + 1, y + 1) == 'y'))
-            moves << qMakePair(location, newLocation = Board::indexAt(x + 1, y + 1));
-        else if (a.at(x - 1, y + 1) == 'e' && (b.at(x - 1, y + 1) == 'x' || b.at(x - 1, y + 1) == 'y'))
-            moves << qMakePair(location, newLocation = Board::indexAt(x - 1, y + 1));
-        else if ((a.at(x + 1, y + 1) == 'o' || a.at(x + 1, y + 1) == 'p') && b.at(x + 1, y + 1) == 'e' && !eaten.contains(qMakePair(x + 1, y + 1))) {
-            moves << qMakePair(location, newLocation = Board::indexAt(x + 2, y + 2));
-            eaten.insert(qMakePair(x + 1, y + 1));
-        } else if ((a.at(x - 1, y + 1) == 'o' || a.at(x - 1, y + 1) == 'p') && b.at(x - 1, y + 1) == 'e' && !eaten.contains(qMakePair(x - 1, y + 1))) {
-            moves << qMakePair(location, newLocation = Board::indexAt(x - 2, y + 2));
-            eaten.insert(qMakePair(x - 1, y + 1));
-        } else if (type == 'y') {
-            if (a.at(x + 1, y - 1) == 'e' && b.at(x + 1, y - 1) == 'y')
-                moves << qMakePair(location, newLocation = Board::indexAt(x + 1, y - 1));
-            else if (a.at(x - 1, y - 1) == 'e' && b.at(x - 1, y - 1) == 'y')
-                moves << qMakePair(location, newLocation = Board::indexAt(x - 1, y - 1));
-            else if ((a.at(x + 1, y - 1) == 'o' || a.at(x + 1, y - 1) == 'p') && b.at(x + 1, y - 1) == 'e' && !eaten.contains(qMakePair(x + 1, y - 1))) {
-                moves << qMakePair(location, newLocation = Board::indexAt(x + 2, y - 2));
-                eaten.insert(qMakePair(x + 1, y - 1));
-            } else if ((a.at(x - 1, y - 1) == 'o' || a.at(x - 1, y - 1) == 'p') && b.at(x - 1, y - 1) == 'e' && !eaten.contains(qMakePair(x - 1, y - 1))) {
-                moves << qMakePair(location, newLocation = Board::indexAt(x - 2, y - 2));
-                eaten.insert(qMakePair(x - 1, y - 1));
-            }
-        }
-
-        location = newLocation;
-        x = Board::getX(location);
-        y = Board::getY(location);
-
-        newLocation = -1;
-    }
-
-    return moves;
-}
-
-bool Server::isMoveValid(int from, int to) {
-    return validMoves.contains(qMakePair(from, to));
-}
-
-void Server::findValidMoves() {
-    const Board &board = pl.getBoard();
-
-    validMoves.clear();
-
-    for (int x = 0; x < Board::BoardDim; x++)
-        for (int y = 0; y < Board::BoardDim; y++) {
-            int index = Board::indexAt(x, y);
-
-            if (board.at(index) == 'o' || board.at(index) == 'p') {
-                if ((board.at(x + 1, y - 1) == 'x' || board.at(x + 1, y - 1) == 'y') && board.at(x + 2, y - 2) == 'e')
-                    validMoves << qMakePair(index, Board::indexAt(x + 2, y - 2));
-                if ((board.at(x - 1, y - 1) == 'x' || board.at(x - 1, y - 1) == 'y') && board.at(x - 2, y - 2) == 'e')
-                    validMoves << qMakePair(index, Board::indexAt(x - 2, y - 2));
-
-                if (board.at(index) == 'p') {
-                    if ((board.at(x + 1, y + 1) == 'x' || board.at(x + 1, y + 1) == 'y') && board.at(x + 2, y + 2) == 'e')
-                        validMoves << qMakePair(index, Board::indexAt(x + 2, y + 2));
-                    if ((board.at(x - 1, y + 1) == 'x' || board.at(x - 1, y + 1) == 'y') && board.at(x - 2, y + 2) == 'e')
-                        validMoves << qMakePair(index, Board::indexAt(x - 2, y + 2));
-                }
-            }
-        }
-
-    if (validMoves.empty()) {
-        for (int x = 0; x < Board::BoardDim; x++)
-            for (int y = 0; y < Board::BoardDim; y++) {
-                int index = Board::indexAt(x, y);
-
-                if (selection != -1 && selection != index)
-                    continue;
-
-                if (board.at(index) == 'o' || board.at(index) == 'p') {
-                    if (board.at(x + 1, y - 1) == 'e')
-                        validMoves << qMakePair(index, Board::indexAt(x + 1, y - 1));
-                    if (board.at(x - 1, y - 1) == 'e')
-                        validMoves << qMakePair(index, Board::indexAt(x - 1, y - 1));
-
-                    if (board.at(index) == 'p') {
-                        if (board.at(x + 1, y + 1) == 'e')
-                            validMoves << qMakePair(index, Board::indexAt(x + 1, y + 1));
-                        if (board.at(x - 1, y + 1) == 'e')
-                            validMoves << qMakePair(index, Board::indexAt(x - 1, y + 1));
-                    }
-                }
-            }
-    } else if (selection != -1) {
-        QMutableVectorIterator<QPair<int, int>> i(validMoves);
-
-        while (i.hasNext()) {
-            if (i.next().first != selection)
-                i.remove();
-        }
-
-        if (!validMoves.empty() && lastMoveIsEat)
-            lockSelection = true;
-    }
 }

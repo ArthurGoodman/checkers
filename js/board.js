@@ -17,6 +17,14 @@ function Board(canvas) {
 
     var redraw = true;
 
+    var images = {
+        x: $("#x")[0],
+        X: $("#X")[0],
+        o: $("#o")[0],
+        O: $("#O")[0],
+        s: $("#s")[0]
+    }
+
     function indexAt(x, y) {
         return y * BoardDim + x;
     }
@@ -70,7 +78,7 @@ function Board(canvas) {
     }
 
     this.remove = function(index) {
-        data[index] = "e";
+        data[index] = "_";
         redraw = true;
     }
 
@@ -87,46 +95,51 @@ function Board(canvas) {
             }
     }
 
-    function drawCircle(x, y, radius, lineWidth, color, fill) {
-        ctx.beginPath();
-        ctx.lineWidth = lineWidth;
-        ctx.arc(x, y, radius, 0, Math.PI * 2, false);
-        ctx.closePath();
+    // function drawCircle(x, y, radius, lineWidth, color, fill) {
+    //     ctx.beginPath();
+    //     ctx.lineWidth = lineWidth;
+    //     ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+    //     ctx.closePath();
 
-        if (fill) {
-            ctx.fillStyle = color;
-            ctx.fill();
-        } else {
-            ctx.strokeStyle = color;
-            ctx.stroke();
-        }
-    }
+    //     if (fill) {
+    //         ctx.fillStyle = color;
+    //         ctx.fill();
+    //     } else {
+    //         ctx.strokeStyle = color;
+    //         ctx.stroke();
+    //     }
+    // }
 
-    function drawPiece(x, y, color, king, fill) {
+    function drawPiece(x, y, sign, selected) {
         x = (x + 0.5) * cellSize;
         y = (y + 0.5) * cellSize;
 
-        if (animation != null && fill) {
+        if (animation != null && selected) {
             x = x * (1 - animation) + (getX(target) + 0.5) * cellSize * animation;
             y = y * (1 - animation) + (getY(target) + 0.5) * cellSize * animation;
         }
 
         var radius = cellSize / 2 / 1.2;
 
-        drawCircle(x, y, radius, 3, color, fill);
+        // drawCircle(x, y, radius, 3, color, selected);
 
-        if (king && !fill) {
-            drawCircle(x, y, radius / 1.3, 3, color);
-            drawCircle(x, y, radius / 1.9, 3, color);
-            drawCircle(x, y, radius / 3.5, 3, color);
-        }
+        if (selected)
+            ctx.drawImage(images.s, x - cellSize / 2, y - cellSize / 2, cellSize, cellSize);
+
+        ctx.drawImage(images[sign], x - cellSize / 2, y - cellSize / 2, cellSize, cellSize);
+
+        // if (king && !selected) {
+        //     drawCircle(x, y, radius / 1.3, 3, color);
+        //     drawCircle(x, y, radius / 1.9, 3, color);
+        //     drawCircle(x, y, radius / 3.5, 3, color);
+        // }
     }
 
     function processCell(i) {
         var v = data[i];
 
-        if (v != "n" && v != "e")
-            drawPiece(getX(i), getY(i), (v == "x" || v == "y") ? "#e33" : "#33e", v == "y" || v == "p", selection == i);
+        if (v != " " && v != "_")
+            drawPiece(getX(i), getY(i), v, selection == i);
     }
 
     function drawBoard() {
@@ -145,13 +158,13 @@ function Board(canvas) {
 
             if (animation >= 1) {
                 if (getY(target) == 7 && data[selection] == "x")
-                    data[target] = "y";
+                    data[target] = "X";
                 else if (getY(target) == 0 && data[selection] == "o")
-                    data[target] = "p";
+                    data[target] = "O";
                 else
                     data[target] = data[selection];
 
-                data[selection] = "e";
+                data[selection] = "_";
 
                 selection = null;
                 target = null;

@@ -4,7 +4,9 @@ const spawn = require("child_process").spawn;
 const http = require("http");
 const fs = require("fs");
 
-var child = spawn("cpp/release/checkers.exe");
+var settings = require("./settings.json");
+
+var child = spawn("cpp/release/checkers.exe", [settings.depth]);
 
 child.stdout.on("data", function(data) {
     process.stdout.write(data);

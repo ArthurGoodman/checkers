@@ -1,122 +1,108 @@
-% move a pawn from one location to another location
-move(Board, FromL, FromC, ToL, ToC, NewBoard) :-
-    getPawn(Board, FromL, FromC, P),
-    turn_to_sign(T, P),!,
-    validMove(Board, T, NewBoard), % Check if there is an eat constraint on the board
-    (movePawnEatRec(Board, P, FromL, FromC, ToL, ToC, NewBoard) ;
-    movePawn(Board, P, FromL, FromC, ToL, ToC, NewBoard)).
+move(Board, XFrom, YFrom, XTo, YTo, NewBoard) :-
+    getSign(Board, XFrom, YFrom, Pawn),
+    turnToSign(Turn, Pawn), !,
+    validMove(Board, Turn, NewBoard),
+    (movePawnEatRec(Board, Pawn, XFrom, YFrom, XTo, YTo, NewBoard) ;
+    movePawn(Board, Pawn, XFrom, YFrom, XTo, YTo, NewBoard)).
 
-% Perform a standard move of a pawn
-movePawn(Board, Pawn, FromL, FromC, ToL, ToC, NewBoard) :-
-    validateMove(Board, Pawn, FromL, FromC, ToL, ToC),
-    putSign(Board, FromL, FromC, e, TB),
-    putSign(TB, ToL, ToC, Pawn, NewBoard).
+movePawn(Board, Pawn, XFrom, YFrom, XTo, YTo, NewBoard) :-
+    validateMove(Board, Pawn, XFrom, YFrom, XTo, YTo),
+    putSign(Board, XFrom, YFrom, '_', TempBoard),
+    putSign(TempBoard, XTo, YTo, Pawn, NewBoard).
 
-% Perform an eating move of a pawn recursively
-movePawnEatRec(Board, Pawn, FromL, FromC, ToL, ToC, NewBoard) :-
-    movePawnEat(Board, Pawn, FromL, FromC, ToL, ToC, NewBoard).
+movePawnEatRec(Board, Pawn, XFrom, YFrom, XTo, YTo, NewBoard) :-
+    movePawnEat(Board, Pawn, XFrom, YFrom, XTo, YTo, NewBoard), !.
 
-movePawnEatRec(Board, Pawn, FromL, FromC, ToL, ToC, NewBoard) :-
-    ((Pawn = x ; Pawn = y ; Pawn = p),
-    FromL1 is FromL + 2 ;
-    (Pawn = o ; Pawn = y ; Pawn = p),
-    FromL1 is FromL - 2),
-    FromC1 is FromC + 2,
-    FromC2 is FromC - 2,
-    (movePawnEat(Board, Pawn, FromL, FromC, FromL1, FromC1, TempBoard),
-    movePawnEatRec(TempBoard, Pawn, FromL1, FromC1, ToL, ToC, NewBoard) ;
-    movePawnEat(Board, Pawn, FromL, FromC, FromL1, FromC2, TempBoard),
-    movePawnEatRec(TempBoard, Pawn, FromL1, FromC2, ToL, ToC, NewBoard)).
+movePawnEatRec(Board, Pawn, XFrom, YFrom, XTo, YTo, NewBoard) :-
+    ((Pawn = 'x' ; Pawn = 'X' ; Pawn = 'O'), YTemp is YFrom + 2 ;
+    (Pawn = 'o' ; Pawn = 'X' ; Pawn = 'O'), YTemp is YFrom - 2),
+    XTemp1 is XFrom + 2,
+    XTemp2 is XFrom - 2,
+    (movePawnEat(Board, Pawn, XFrom, YFrom, XTemp1, YTemp, TempBoard),
+    movePawnEatRec(TempBoard, Pawn, XTemp1, YTemp, XTo, YTo, NewBoard) ;
+    movePawnEat(Board, Pawn, XFrom, YFrom, XTemp2, YTemp, TempBoard),
+    movePawnEatRec(TempBoard, Pawn, XTemp2, YTemp, XTo, YTo, NewBoard)).
 
-% Perform a standard eating move of a pawn
-movePawnEat(Board, Pawn, FromL, FromC, ToL, ToC, NewBoard) :-
-    validateEat(Board, Pawn, FromL, FromC, ToL, ToC),
-    getPos(Board, ToL, ToC, e),
-    EC1 is (FromC + ToC) / 2,
-    EL1 is (FromL + ToL) / 2,
+movePawnEat(Board, Pawn, XFrom, YFrom, XTo, YTo, NewBoard) :-
+    validateEat(Board, Pawn, XFrom, YFrom, XTo, YTo),
+    getPos(Board, XTo, YTo, '_'),
+    EC1 is (XFrom + XTo) / 2,
+    EL1 is (YFrom + YTo) / 2,
     abs(EC1, EC), abs(EL1, EL),
-    putSign(Board, FromL, FromC, e, TB1),
-    putSign(TB1, EL, EC, e, TB2),
-    putSign(TB2, ToL, ToC, Pawn, NewBoard).
+    putSign(Board, XFrom, YFrom, '_', TB1),
+    putSign(TB1, EC, EL, '_', TB2),
+    putSign(TB2, XTo, YTo, Pawn, NewBoard).
 
-% Check if a specific move is a valid eat
-validateEat(Board, King, FromL, FromC, ToL, ToC) :-
-    (King = y ; King = p),
-    ToL >= 1, ToC >= 1,
-    FromL =< 8, FromL =< 8,
-    (ToL is FromL - 2 ; ToL is FromL + 2),
-    (ToC is FromC + 2 ; ToC is FromC - 2),
-    EL is (ToL + FromL) / 2,
-    EC is (ToC + FromC) / 2,
+validateEat(Board, King, XFrom, YFrom, XTo, YTo) :-
+    (King = 'X' ; King = 'O'),
+    YTo >= 1, XTo >= 1,
+    YFrom =< 8, YFrom =< 8,
+    (YTo is YFrom - 2 ; YTo is YFrom + 2),
+    (XTo is XFrom + 2 ; XTo is XFrom - 2),
+    EL is (YTo + YFrom) / 2,
+    EC is (XTo + XFrom) / 2,
     enemy(King, Enemy),
-    getPawn(Board, EL, EC, Enemy).
-             
-validateEat(Board, x, FromL, FromC, ToL, ToC) :-
-    ToL >= 1, ToC >= 1,
-    FromL =< 8, FromL =< 8,
-    ToL is FromL + 2,
-    (ToC is FromC + 2 ; ToC is FromC - 2),
-    EL is (ToL + FromL) / 2,
-    EC is (ToC + FromC) / 2,
-    enemy(x, Enemy),
-    getPawn(Board, EL, EC, Enemy).
+    getSign(Board, EC, EL, Enemy).
 
-validateEat(Board, o, FromL, FromC, ToL, ToC) :-
-    ToL >= 1, ToC >= 1,
-    FromL =< 8, FromL =< 8,
-    ToL is FromL - 2,
-    (ToC is FromC + 2 ; ToC is FromC - 2),
-    EL is (ToL + FromL) / 2,
-    EC is (ToC + FromC) / 2,
-    enemy(o, Enemy),
-    getPawn(Board, EL, EC, Enemy).
+validateEat(Board, 'x', XFrom, YFrom, XTo, YTo) :-
+    YTo >= 1, XTo >= 1,
+    YFrom =< 8, YFrom =< 8,
+    YTo is YFrom + 2,
+    (XTo is XFrom + 2 ; XTo is XFrom - 2),
+    EL is (YTo + YFrom) / 2,
+    EC is (XTo + XFrom) / 2,
+    enemy('x', Enemy),
+    getSign(Board, EC, EL, Enemy).
 
-% Check if a specific move is valid
-validateMove(Board, King, FromL, FromC, ToL, ToC) :-
-    (King = y ; King = p),
-    ToL >= 1, ToC >= 1,
-    FromL =< 8, FromL =< 8,
-    (ToL is FromL + 1 ; ToL is FromL - 1),
-    (ToC is FromC + 1 ; ToC is FromC - 1),
-    getPos(Board, ToL, ToC, e).
+validateEat(Board, 'o', XFrom, YFrom, XTo, YTo) :-
+    YTo >= 1, XTo >= 1,
+    YFrom =< 8, YFrom =< 8,
+    YTo is YFrom - 2,
+    (XTo is XFrom + 2 ; XTo is XFrom - 2),
+    EL is (YTo + YFrom) / 2,
+    EC is (XTo + XFrom) / 2,
+    enemy('o', Enemy),
+    getSign(Board, EC, EL, Enemy).
 
-validateMove(Board, x, FromL, FromC, ToL, ToC) :-
-    ToL >= 1, ToC >= 1,
-    FromL =< 8, FromL =< 8,
-    ToL is FromL + 1,
-    (ToC is FromC + 1 ; ToC is FromC - 1),
-    getPos(Board, ToL, ToC, e).
-               
-validateMove(Board, o, FromL, FromC, ToL, ToC) :-
-    ToL >= 1, ToC >= 1,
-    FromL =< 8, FromL =< 8,
-    ToL is FromL - 1,
-    (ToC is FromC + 1 ; ToC is FromC - 1),
-    getPos(Board, ToL, ToC, e).
+validateMove(Board, King, XFrom, YFrom, XTo, YTo) :-
+    (King = 'X' ; King = 'O'),
+    YTo >= 1, XTo >= 1,
+    YFrom =< 8, YFrom =< 8,
+    (YTo is YFrom + 1 ; YTo is YFrom - 1),
+    (XTo is XFrom + 1 ; XTo is XFrom - 1),
+    getPos(Board, XTo, YTo, '_').
 
-% Get all the valid eat moves that availible on the board
+validateMove(Board, 'x', XFrom, YFrom, XTo, YTo) :-
+    YTo >= 1, XTo >= 1,
+    YFrom =< 8, YFrom =< 8,
+    YTo is YFrom + 1,
+    (XTo is XFrom + 1 ; XTo is XFrom - 1),
+    getPos(Board, XTo, YTo, '_').
+
+validateMove(Board, 'o', XFrom, YFrom, XTo, YTo) :-
+    YTo >= 1, XTo >= 1,
+    YFrom =< 8, YFrom =< 8,
+    YTo is YFrom - 1,
+    (XTo is XFrom + 1 ; XTo is XFrom - 1),
+    getPos(Board, XTo, YTo, '_').
+
 validEatMove(Board, Sign, NewBoard) :-
-    findPawn(Board, Sign, L, C), findPawn(Board, e, Tl, Tc),
-    movePawnEatRec(Board, Sign, L, C, Tl, Tc, NewBoard).
+    findSign(Board, Sign, XFrom, YFrom), findSign(Board, '_', XTo, YTo),
+    movePawnEatRec(Board, Sign, XFrom, YFrom, XTo, YTo, NewBoard).
 
-% Get all the valid standard moves that availible on the board
 validStdMove(Board, Sign, NewBoard) :-
-    findPawn(Board, Sign, L, C), findPawn(Board, e, Tl, Tc),
-    movePawn(Board, Sign, L, C, Tl, Tc, NewBoard).
+    findSign(Board, Sign, XFrom, YFrom), findSign(Board, '_', XTo, YTo),
+    movePawn(Board, Sign, XFrom, YFrom, XTo, YTo, NewBoard).
 
-% A move on the board is valid if it's an eat move
 validMove(Board, Turn, NewBoard) :-
-    turn_to_sign(Turn, Sign),
+    turnToSign(Turn, Sign),
     validEatMove(Board, Sign, NewBoard).
 
-% Or a standard move when no eat moves are availible
 validMove(Board, Turn, NewBoard) :-
-    not((turn_to_sign(Turn, Sign),
-    validEatMove(Board, Sign, NewBoard))),
-    turn_to_sign(Turn, Sign1),
-    validStdMove(Board, Sign1, NewBoard).
+    turnToSign(Turn, Sign),
+    \+ validEatMove(Board, Sign, NewBoard),
+    validStdMove(Board, Sign, NewBoard).
 
-% Get a list of the valid moves that can be on the board
 moves(Turn/Board, [Head | Tail]) :-
-    next_player(Turn, NextTurn),
+    nextPlayer(Turn, NextTurn),
     findall(NextTurn/NewBoard, validMove(Board, Turn, NewBoard), [Head | Tail]).

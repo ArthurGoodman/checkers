@@ -1,2 +1,2 @@
 @echo off
-nodemon -e js,css,html,exe,pl index.js
+nodemon -e js,json,css,html,exe,pl index.js
