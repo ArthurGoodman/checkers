@@ -102,6 +102,7 @@ validMove(Board, Turn, NewBoard) :-
     \+ validEatMove(Board, Sign, NewBoard),
     validStdMove(Board, Sign, NewBoard).
 
-moves(Turn/Board, [Head | Tail]) :-
+moves(Turn/Board, Positions) :-
+    Positions = [Head | Tail],
     nextPlayer(Turn, NextTurn),
-    findall(NextTurn/NewBoard, validMove(Board, Turn, NewBoard), [Head | Tail]).
+    findall(NextTurn/NewBoard, validMove(Board, Turn, NewBoard), Positions).

@@ -22,6 +22,6 @@ newBounds(Alpha, Beta, o/_, Val, Val, Beta) :- Val > Alpha, !.
 newBounds(Alpha, Beta, x/_, Val, Alpha, Val) :- Val < Beta, !.
 newBounds(Alpha, Beta, _, _, Alpha, Beta).
 
-bestPosition(o/Board, Val1, _, Val2, o/Board, Val1) :- Val1 > Val2, !.
-bestPosition(x/Board, Val1, _, Val2, x/Board, Val1) :- Val1 < Val2, !.
+bestPosition(o/Board1, Val1, _, Val2, o/Board1, Val1) :- Val1 > Val2, !.
+bestPosition(x/Board1, Val1, _, Val2, x/Board1, Val1) :- Val1 < Val2, !.
 bestPosition(_, _, Pos2, Val2, Pos2, Val2).
