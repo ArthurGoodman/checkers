@@ -21,8 +21,7 @@ function Board(canvas) {
         x: $("#x")[0],
         X: $("#X")[0],
         o: $("#o")[0],
-        O: $("#O")[0],
-        s: $("#s")[0]
+        O: $("#O")[0]
     }
 
     function indexAt(x, y) {
@@ -123,10 +122,20 @@ function Board(canvas) {
 
         // drawCircle(x, y, radius, 3, color, selected);
 
-        if (selected)
-            ctx.drawImage(images.s, x - cellSize / 2, y - cellSize / 2, cellSize, cellSize);
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+
+        if (selected) {
+            ctx.shadowColor = "#ff0";
+            ctx.shadowBlur = 50;
+        } else {
+            ctx.shadowColor = "#000";
+            ctx.shadowBlur = 10;
+        }
 
         ctx.drawImage(images[sign], x - cellSize / 2, y - cellSize / 2, cellSize, cellSize);
+
+        ctx.shadowColor = "transparent";
 
         // if (king && !selected) {
         //     drawCircle(x, y, radius / 1.3, 3, color);
@@ -136,10 +145,10 @@ function Board(canvas) {
     }
 
     function processCell(i) {
-        var v = data[i];
+        var sign = data[i];
 
-        if (v != " " && v != "_")
-            drawPiece(getX(i), getY(i), v, selection == i);
+        if (sign != " " && sign != "_")
+            drawPiece(getX(i), getY(i), sign, selection == i);
     }
 
     function drawBoard() {
