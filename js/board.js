@@ -120,7 +120,16 @@ function Board(canvas) {
 
         var radius = cellSize / 2 / 1.2;
 
+        // var king = sign == "X" || sign == "O";
+        // var color = sign == "x" || sign == "X" ? "#e33" : "#33e";
+
         // drawCircle(x, y, radius, 3, color, selected);
+
+        // if (king && !selected) {
+        //     drawCircle(x, y, radius / 1.3, 3, color);
+        //     drawCircle(x, y, radius / 1.9, 3, color);
+        //     drawCircle(x, y, radius / 3.5, 3, color);
+        // }
 
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
@@ -136,12 +145,6 @@ function Board(canvas) {
         ctx.drawImage(images[sign], x - cellSize / 2, y - cellSize / 2, cellSize, cellSize);
 
         ctx.shadowColor = "transparent";
-
-        // if (king && !selected) {
-        //     drawCircle(x, y, radius / 1.3, 3, color);
-        //     drawCircle(x, y, radius / 1.9, 3, color);
-        //     drawCircle(x, y, radius / 3.5, 3, color);
-        // }
     }
 
     function processCell(i) {
