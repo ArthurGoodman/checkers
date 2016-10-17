@@ -118,7 +118,7 @@ function Board(canvas) {
             y = y * (1 - animation) + (getY(target) + 0.5) * cellSize * animation;
         }
 
-        var radius = cellSize / 2 / 1.2;
+        // var radius = cellSize / 2 / 1.2;
 
         // var king = sign == "X" || sign == "O";
         // var color = sign == "x" || sign == "X" ? "#e33" : "#33e";

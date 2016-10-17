@@ -94,12 +94,11 @@ validStdMove(Board, Sign, NewBoard) :-
     movePawn(Board, Sign, XFrom, YFrom, XTo, YTo, NewBoard).
 
 validMove(Board, Turn, NewBoard) :-
-    turnToSign(Turn, Sign),
-    validEatMove(Board, Sign, NewBoard).
+    turnToSign(Turn, Sign), validEatMove(Board, Sign, NewBoard).
 
 validMove(Board, Turn, NewBoard) :-
+    \+ (turnToSign(Turn, S), validEatMove(Board, S, NewBoard)),
     turnToSign(Turn, Sign),
-    \+ validEatMove(Board, Sign, NewBoard),
     validStdMove(Board, Sign, NewBoard).
 
 moves(Turn/Board, Positions) :-
