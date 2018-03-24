@@ -7,8 +7,8 @@ CONFIG -= app_bundle
 
 TEMPLATE = app
 
-INCLUDEPATH += "C:/Program Files (x86)/swipl/include"
-LIBS += -L"C:/Program Files (x86)/swipl/bin" -lswipl
+INCLUDEPATH += /usr/lib/swi-prolog/include/
+LIBS += -lswipl
 
 HEADERS += \
     server.h \

@@ -6,14 +6,17 @@ const fs = require("fs");
 
 var settings = require("./settings.json");
 
-var child = spawn("cpp/release/checkers.exe", [settings.depth]);
+var env = Object.create(process.env)
+env.SWI_HOME_DIR="/usr/lib/swi-prolog/"
+
+var child = spawn("./build/checkers", [settings.depth], { env: env });
 
 child.stdout.on("data", function(data) {
     process.stdout.write(data);
 });
 
 child.on("close", function(code) {
-    console.log("checkers.exe exited with code", code);
+    console.log("checkers exited with code", code);
 });
 
 var cache = {};
