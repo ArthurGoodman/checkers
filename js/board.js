@@ -118,33 +118,33 @@ function Board(canvas) {
             y = y * (1 - animation) + (getY(target) + 0.5) * cellSize * animation;
         }
 
-        var radius = cellSize / 2 / 1.2;
+        // var radius = cellSize / 2 / 1.2;
 
-        var king = sign == "X" || sign == "O";
-        var color = sign == "x" || sign == "X" ? "#e33" : "#33e";
+        // var king = sign == "X" || sign == "O";
+        // var color = sign == "x" || sign == "X" ? "#e33" : "#33e";
 
-        drawCircle(x, y, radius, 3, color, selected);
+        // drawCircle(x, y, radius, 3, color, selected);
 
-        if (king && !selected) {
-            drawCircle(x, y, radius / 1.3, 3, color);
-            drawCircle(x, y, radius / 1.9, 3, color);
-            drawCircle(x, y, radius / 3.5, 3, color);
-        }
-
-        // ctx.shadowOffsetX = 0;
-        // ctx.shadowOffsetY = 0;
-
-        // if (selected) {
-        //     ctx.shadowColor = "#ff0";
-        //     ctx.shadowBlur = 50;
-        // } else {
-        //     ctx.shadowColor = "#000";
-        //     ctx.shadowBlur = 10;
+        // if (king && !selected) {
+        //     drawCircle(x, y, radius / 1.3, 3, color);
+        //     drawCircle(x, y, radius / 1.9, 3, color);
+        //     drawCircle(x, y, radius / 3.5, 3, color);
         // }
 
-        // ctx.drawImage(images[sign], x - cellSize / 2, y - cellSize / 2, cellSize, cellSize);
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
 
-        // ctx.shadowColor = "transparent";
+        if (selected) {
+            ctx.shadowColor = "#ff0";
+            ctx.shadowBlur = 50;
+        } else {
+            ctx.shadowColor = "#000";
+            ctx.shadowBlur = 10;
+        }
+
+        ctx.drawImage(images[sign], x - cellSize / 2, y - cellSize / 2, cellSize, cellSize);
+
+        ctx.shadowColor = "transparent";
     }
 
     function processCell(i) {
